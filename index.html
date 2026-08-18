@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>豆友咖啡 ☕</title>
+  <style>
+    :root {
+      --primary:#A0724A; --primary-light:#C49A6C; --bg:#FFF8F0; --card:#fff;
+      --pink:#FFB5C2; --pink-light:#FFE4E8; --text:#4A3728; --text-light:#8B7355;
+      --border:#F0E0D0; --shadow:rgba(160,114,74,.1); --radius:16px; --radius-sm:10px;
+      --success:#7BC67E; --danger:#FF6B6B; --header-bg:#6B4226;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif; font-size:15px; color:var(--text); background:var(--bg); min-height:100vh; }
+    .page { max-width:480px; margin:0 auto; min-height:100vh; padding-bottom:80px; position:relative; }
+    .card { background:var(--card); border-radius:var(--radius); padding:18px; margin:12px 16px; box-shadow:0 2px 12px var(--shadow); }
+    .card-title { font-size:15px; font-weight:600; color:var(--primary); margin-bottom:12px; }
+    .header { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; padding:20px 20px 24px; border-radius:0 0 24px 24px; position:relative; overflow:hidden; }
+    .header::after { content:''; position:absolute; top:-30px; right:-30px; width:100px; height:100px; background:rgba(255,255,255,.1); border-radius:50%; }
+    .header-title { font-size:20px; font-weight:600; }
+    .header-sub { font-size:13px; opacity:.85; margin-top:4px; }
+    .header-back { position:absolute; left:16px; top:20px; font-size:28px; color:#fff; text-decoration:none; cursor:pointer; z-index:10; }
+    .form-group { margin-bottom:14px; }
+    .form-label { font-size:13px; color:var(--text-light); margin-bottom:5px; display:block; }
+    .form-input { width:100%; padding:11px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); font-size:15px; color:var(--text); background:var(--card); outline:none; }
+    .form-input:focus { border-color:var(--primary-light); }
+    .form-input::placeholder { color:#C4B09A; }
+    .btn { display:block; width:100%; padding:14px; border:none; border-radius:var(--radius); font-size:16px; font-weight:600; cursor:pointer; text-align:center; transition:transform .2s; }
+    .btn:active { transform:scale(.98); }
+    .btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; }
+    .btn-pink { background:linear-gradient(135deg,var(--pink),#FF8FA3); color:#fff; }
+    .btn-outline { background:transparent; border:2px solid var(--primary); color:var(--primary); }
+    .btn-sm { padding:8px 16px; font-size:13px; width:auto; display:inline-block; border-radius:var(--radius-sm); }
+    .banner { padding:12px 16px; border-radius:var(--radius-sm); margin:12px 16px; font-size:14px; font-weight:500; text-align:center; }
+    .banner-pink { background:linear-gradient(135deg,var(--pink-light),#FFD1DC); color:#C2185B; }
+    .banner-green { background:linear-gradient(135deg,#E8F5E9,#C8E6C9); color:#2E7D32; }
+    .stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .stat-item { text-align:center; padding:16px 8px; background:var(--bg); border-radius:var(--radius-sm); }
+    .stat-val { font-size:24px; font-weight:700; color:var(--primary); }
+    .stat-label { font-size:12px; color:var(--text-light); margin-top:4px; }
+    .list-item { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+    .list-item:last-child { border-bottom:none; }
+    .list-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-right:12px; flex-shrink:0; }
+    .list-content { flex:1; min-width:0; }
+    .list-title { font-size:14px; font-weight:500; }
+    .list-desc { font-size:12px; color:var(--text-light); margin-top:2px; }
+    .list-extra { font-size:14px; font-weight:600; color:var(--primary); margin-left:8px; }
+    .tab-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#fff; display:flex; border-top:1px solid var(--border); z-index:100; }
+    .tab-item { flex:1; display:flex; flex-direction:column; align-items:center; padding:8px 0; text-decoration:none; color:var(--text-light); font-size:11px; }
+    .tab-item.active { color:var(--primary); }
+    .tab-icon { font-size:22px; margin-bottom:2px; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge-green { background:#E8F5E9; color:#4CAF50; }
+    .badge-orange { background:#FFF3E0; color:#F57C00; }
+    .toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(74,55,40,.9); color:#fff; padding:12px 24px; border-radius:var(--radius); font-size:14px; z-index:9999; animation:toastIn .3s ease; }
+    @keyframes toastIn { from{opacity:0;transform:translate(-50%,-50%) scale(.8)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+    .share-card { background:linear-gradient(135deg,#FFF8F0,#FFE4E8); border-radius:24px; padding:24px; text-align:center; border:2px dashed var(--pink); margin-top:16px; }
+    .share-code { font-size:24px; font-weight:700; color:var(--primary); letter-spacing:2px; margin:12px 0; font-family:monospace; }
+    .text-center { text-align:center; }
+    .text-light { color:var(--text-light); }
+    .mt-8 { margin-top:8px; }
+    .mt-12 { margin-top:12px; }
+    .mt-16 { margin-top:16px; }
+    .mt-20 { margin-top:20px; }
+    .empty { text-align:center; padding:40px 20px; color:var(--text-light); }
+    .empty-icon { font-size:48px; margin-bottom:12px; }
+    .admin-nav { display:flex; background:#fff; border-bottom:1px solid var(--border); }
+    .admin-nav-item { flex:1; text-align:center; padding:12px 8px; font-size:13px; font-weight:500; color:var(--text-light); border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; }
+    .admin-nav-item.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .mode-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+    .mode-exp { background:var(--pink-light); color:#C2185B; }
+    .mode-op { background:#E8F5E9; color:#2E7D32; }
+    .hidden { display:none !important; }
+
+    /* ===== 首页新样式 ===== */
+    .top-bar { background:var(--header-bg); color:#fff; padding:28px 20px 22px; border-radius:0 0 20px 20px; position:relative; }
+    .top-bar-inner { display:flex; align-items:center; gap:14px; }
+    .top-bar-icon { width:52px; height:52px; background:rgba(255,255,255,.15); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; }
+    .top-bar-title { font-size:22px; font-weight:700; letter-spacing:1px; }
+    .top-bar-sub { font-size:12px; opacity:.8; margin-top:2px; }
+    .top-bar-status { font-size:12px; margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,255,255,.3); }
+    .points-card { background:#fff; border-radius:20px; margin:16px; padding:20px; box-shadow:0 4px 20px rgba(160,114,74,.08); }
+    .points-card-title { font-size:14px; color:var(--text-light); margin-bottom:8px; }
+    .points-big { font-size:42px; font-weight:700; color:var(--text); }
+    .points-big span { font-size:16px; font-weight:400; color:var(--text-light); margin-left:4px; }
+    .points-val-line { font-size:12px; color:var(--text-light); margin-top:2px; padding-bottom:14px; border-bottom:2px dashed var(--border); }
+    .points-row { display:flex; justify-content:space-around; padding-top:14px; }
+    .points-row-item { text-align:center; }
+    .points-row-val { font-size:18px; font-weight:700; }
+    .points-row-val.positive { color:var(--success); }
+    .points-row-val.negative { color:var(--danger); }
+    .points-row-label { font-size:11px; color:var(--text-light); margin-top:2px; }
+    .section-title { font-size:17px; font-weight:700; color:var(--text); margin:20px 16px 12px; }
+    .section-title-icon { margin-right:6px; }
+    .section-subtitle { font-size:13px; font-weight:400; color:var(--text-light); margin-left:4px; }
+    .bean-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 16px; }
+    .bean-card { background:#fff; border-radius:16px; padding:16px; box-shadow:0 2px 12px var(--shadow); overflow:hidden; }
+    .bean-card-img { height:90px; background:linear-gradient(135deg,#F5EDE4,#E8DDD2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:48px; margin-bottom:12px; }
+    .bean-card-name { font-size:15px; font-weight:700; color:var(--text); margin-bottom:3px; }
+    .bean-card-origin { font-size:11px; color:var(--text-light); margin-bottom:10px; }
+    .bean-card-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .bean-tag { padding:3px 9px; border-radius:20px; font-size:11px; font-weight:500; }
+    .bean-tag-brown { background:#FFF3E0; color:#A0724A; }
+    .bean-tag-green { background:#E8F5E9; color:#4CAF50; }
+    .bean-tag-blue { background:#E3F2FD; color:#1976D2; }
+    .feature-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:0 16px; margin-top:16px; }
+    .feature-item { background:#fff; border-radius:14px; padding:16px 8px; text-align:center; box-shadow:0 2px 8px var(--shadow); cursor:pointer; }
+    .feature-icon { font-size:28px; margin-bottom:6px; }
+    .feature-name { font-size:12px; font-weight:600; color:var(--text); }
+    .feature-desc { font-size:10px; color:var(--text-light); margin-top:2px; }
+    .tab-row { display:flex; gap:0; margin:16px 16px 0; background:var(--bg); border-radius:var(--radius-sm); padding:4px; }
+    .tab-btn { flex:1; padding:10px; text-align:center; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; color:var(--text-light); border:none; background:transparent; }
+    .tab-btn.active { background:#fff; color:var(--primary); box-shadow:0 1px 4px var(--shadow); }
+    .weekly-banner { background:linear-gradient(135deg,var(--pink-light),#FFD1DC); border-radius:var(--radius); margin:16px; padding:16px; display:flex; align-items:center; gap:12px; }
+    .weekly-banner-icon { font-size:36px; }
+    .weekly-banner-title { font-size:15px; font-weight:700; color:var(--text); }
+    .weekly-banner-sub { font-size:12px; color:var(--text-light); margin-top:2px; }
+    .weekly-detail { background:#fff; border-radius:var(--radius); margin:0 16px 12px; padding:18px; box-shadow:0 2px 12px var(--shadow); }
+    .weekly-detail-name { font-size:17px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .weekly-detail-origin { font-size:12px; color:var(--text-light); margin-bottom:14px; }
+    .weekly-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .weekly-info-item { background:var(--bg); border-radius:8px; padding:10px; }
+    .weekly-info-label { font-size:11px; color:var(--text-light); }
+    .weekly-info-val { font-size:14px; font-weight:600; color:var(--text); margin-top:2px; }
+    .weekly-review { background:linear-gradient(135deg,#FFF8F0,#FFE4E8); border-radius:12px; padding:14px; border-left:3px solid var(--pink); }
+    .weekly-review-title { font-size:13px; font-weight:600; color:var(--primary); margin-bottom:6px; }
+    .weekly-review-text { font-size:13px; color:var(--text); line-height:1.6; }
+    .index-footer { text-align:center; padding:20px; font-size:12px; color:var(--text-light); line-height:1.6; }
+
+    /* ===== 登录注册样式 ===== */
+    .auth-card { background:#fff; border-radius:var(--radius); padding:20px; margin:12px 16px; box-shadow:0 2px 12px var(--shadow); }
+    .auth-card .form-input { padding:13px 16px; font-size:16px; }
+
+    /* ===== 豆子明细 ===== */
+    .bean-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .bean-form-grid .form-group.full { grid-column:1/-1; }
+    .bean-detail-row { display:flex; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+    .bean-detail-row:last-child { border-bottom:none; }
+    .bean-detail-label { width:80px; flex-shrink:0; color:var(--text-light); }
+    .bean-detail-val { flex:1; font-weight:500; }
+  </style>
+</head>
+<body>
+<div class="page" id="app">
+
+  <!-- ===== 首页 ===== -->
+  <div id="page-index">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <div class="top-bar-icon"></div>
+        <div>
+          <div class="top-bar-title">豆友咖啡</div>
+          <div class="top-bar-sub">手冲精品 · 温暖小店</div>
+        </div>
+      </div>
+      <div class="top-bar-status" id="index-status">畅饮权益：未激活 · 带100g豆即可激活</div>
+    </div>
+
+    <div class="points-card" id="index-points-card">
+      <div class="points-card-title">可用积分</div>
+      <div class="points-big" id="idx-points-val">0<span>豆 ≈ ¥0.00</span></div>
+      <div class="points-val-line"></div>
+      <div class="points-row">
+        <div class="points-row-item"><div class="points-row-val positive" id="idx-monthly">+0</div><div class="points-row-label">本月获得</div></div>
+        <div class="points-row-item"><div class="points-row-val" id="idx-shared">0</div><div class="points-row-label">已分享</div></div>
+        <div class="points-row-item"><div class="points-row-val negative" id="idx-used">-0</div><div class="points-row-label">本月已用</div></div>
+      </div>
+    </div>
+
+    <!-- 注册/登录 Tab -->
+    <div id="index-auth">
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-reg" onclick="switchAuthTab('reg')">注册</button>
+        <button class="tab-btn" id="tab-login" onclick="switchAuthTab('login')">登录</button>
+      </div>
+      <!-- 注册 -->
+      <div class="auth-card" id="auth-reg">
+        <div class="form-group">
+          <label class="form-label">昵称</label>
+          <input class="form-input" id="reg-nickname" placeholder="给自己取个豆友名吧" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <input class="form-input" id="reg-phone" type="tel" placeholder="请输入手机号" maxlength="11">
+        </div>
+        <button class="btn btn-primary" onclick="doRegister()">成为豆友</button>
+      </div>
+      <!-- 登录 -->
+      <div class="auth-card hidden" id="auth-login">
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <input class="form-input" id="login-phone" type="tel" placeholder="请输入注册时的手机号" maxlength="11">
+        </div>
+        <button class="btn btn-primary" onclick="doLogin()">登录</button>
+      </div>
+    </div>
+
+    <div class="banner banner-pink" id="exp-banner">🎉 实验期进行中，注册即可免费畅饮！</div>
+
+    <!-- 本周好豆豆 -->
+    <div class="weekly-banner">
+      <div class="weekly-banner-icon">🏆</div>
+      <div>
+        <div class="weekly-banner-title">本周好豆豆</div>
+        <div class="weekly-banner-sub" id="weekly-sub">好评度最高的豆子</div>
+      </div>
+    </div>
+    <div id="weekly-detail-wrap"></div>
+
+    <!-- 在店豆子 -->
+    <div class="section-title"><span class="section-title-icon">🫘</span>在店豆子<span class="section-subtitle">— 今天喝哪支？</span></div>
+    <div class="bean-grid" id="shop-beans-grid"></div>
+
+    <!-- 功能入口 -->
+    <div class="feature-grid">
+      <div class="feature-item" onclick="goFeature('share')">
+        <div class="feature-icon">🎁</div>
+        <div class="feature-name">分享积分</div>
+        <div class="feature-desc">送给朋友</div>
+      </div>
+      <div class="feature-item" onclick="goFeature('rules')">
+        <div class="feature-icon">📋</div>
+        <div class="feature-name">畅饮规则</div>
+        <div class="feature-desc">了解更多</div>
+      </div>
+      <div class="feature-item" onclick="goFeature('records')">
+        <div class="feature-icon">📊</div>
+        <div class="feature-name">积分记录</div>
+        <div class="feature-desc">查看明细</div>
+      </div>
+      <div class="feature-item" onclick="goFeature('admin')">
+        <div class="feature-icon">🔧</div>
+        <div class="feature-name">管理入口</div>
+        <div class="feature-desc">留个位置</div>
+      </div>
+    </div>
+
+    <div class="index-footer">
+      带100g+精品咖啡豆到店，换当月畅饮美式/手冲<br>获得积分可分享给朋友 🫘
+    </div>
+  </div>
+
+  <!-- ===== 会员主页 ===== -->
+  <div id="page-member" class="hidden">
+    <div class="header">
+      <div class="header-title" id="m-nickname"></div>
+      <div class="header-sub" id="m-info"></div>
+    </div>
+    <div class="banner banner-green" id="m-status"></div>
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat-item"><div class="stat-val" id="m-beans">0g</div><div class="stat-label">累计带豆量</div></div>
+        <div class="stat-item"><div class="stat-val" id="m-points">0</div><div class="stat-label">积分余额</div></div>
+        <div class="stat-item"><div class="stat-val" id="m-contrib">0</div><div class="stat-label">带豆次数</div></div>
+        <div class="stat-item"><div class="stat-val" id="m-coupons">0</div><div class="stat-label">可用积分券</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🫘 快捷入口</div>
+      <div class="list-item" onclick="showPage('bean')">
+        <div class="list-icon" style="background:#FFF3E0;">☕</div>
+        <div class="list-content"><div class="list-title">带豆记录</div><div class="list-desc">查看带豆历史和积分获得</div></div>
+        <div class="list-extra">›</div>
+      </div>
+      <div class="list-item" onclick="showPage('points')">
+        <div class="list-icon" style="background:var(--pink-light);"></div>
+        <div class="list-content"><div class="list-title">我的积分</div><div class="list-desc">积分明细 · 积分券</div></div>
+        <div class="list-extra">›</div>
+      </div>
+      <div class="list-item" onclick="showPage('share')">
+        <div class="list-icon" style="background:#E8F5E9;">🎁</div>
+        <div class="list-content"><div class="list-title">分享积分</div><div class="list-desc">邀请好友 · 赠送积分</div></div>
+        <div class="list-extra">›</div>
+      </div>
+    </div>
+    <div class="card text-center">
+      <button class="btn btn-sm btn-outline" onclick="doLogout()" style="border-color:#ddd;color:var(--text-light);">退出登录</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📖 带豆须知</div>
+      <div style="font-size:13px;color:var(--text-light);line-height:1.8;">
+        <p>1. 携带 <strong style="color:var(--primary)">100g+</strong> 精品咖啡豆到店</p>
+        <p>2. 经品控合格后获得对应积分（1g = 1积分豆）</p>
+        <p id="m-notice"></p>
+        <p>4. 积分券可用于堂食（30%上限）和外卖（20%上限）</p>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <a class="tab-item active"><span class="tab-icon"></span><span>主页</span></a>
+      <a class="tab-item" onclick="showPage('bean')"><span class="tab-icon"></span><span>带豆</span></a>
+      <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
+      <a class="tab-item" onclick="showPage('share')"><span class="tab-icon">🎁</span><span>分享</span></a>
+    </div>
+  </div>
+
+  <!-- ===== 带豆记录 ===== -->
+  <div id="page-bean" class="hidden">
+    <div class="header">
+      <a class="header-back" onclick="showPage('member')">‹</a>
+      <div class="header-title">☕ 带豆记录</div>
+      <div class="header-sub" id="bean-total"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 历史记录</div>
+      <div id="bean-list"></div>
+    </div>
+    <div class="tab-bar">
+      <a class="tab-item" onclick="showPage('member')"><span class="tab-icon">🏠</span><span>主页</span></a>
+      <a class="tab-item active"><span class="tab-icon">☕</span><span>带豆</span></a>
+      <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
+      <a class="tab-item" onclick="showPage('share')"><span class="tab-icon">🎁</span><span>分享</span></a>
+    </div>
+  </div>
+
+  <!-- ===== 积分 ===== -->
+  <div id="page-points" class="hidden">
+    <div class="header">
+      <a class="header-back" id="points-back-btn" onclick="showPage('index')">‹</a>
+      <div class="header-title">💰 我的积分</div>
+      <div class="header-sub" id="points-balance"></div>
+    </div>
+    <div id="points-login-prompt" class="hidden">
+      <div class="card" style="text-align:center;padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">💰</div>
+        <div style="font-size:16px;font-weight:600;color:var(--primary);margin-bottom:8px;">登录后查看积分</div>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;line-height:1.6;">登录后查看你的积分余额和明细<br>以及好友分享的积分券</p>
+        <button class="btn btn-primary" onclick="showPage('index');switchAuthTab('login');">前往登录</button>
+      </div>
+    </div>
+    <div id="points-content">
+      <div class="card">
+        <div class="card-title">📊 积分明细</div>
+        <div id="points-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎟️ 可用积分券</div>
+        <div id="coupons-list"></div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <a class="tab-item" id="points-tab-home" onclick="showPage('index')"><span class="tab-icon">🏠</span><span>首页</span></a>
+      <a class="tab-item" onclick="showPage('bean')"><span class="tab-icon">☕</span><span>带豆</span></a>
+      <a class="tab-item active"><span class="tab-icon">💰</span><span>积分</span></a>
+      <a class="tab-item" onclick="showPage('share')"><span class="tab-icon">🎁</span><span>分享</span></a>
+    </div>
+  </div>
+
+  <!-- ===== 分享 ===== -->
+  <div id="page-share" class="hidden">
+    <div class="header">
+      <a class="header-back" id="share-back-btn" onclick="showPage('index')">‹</a>
+      <div class="header-title"> 分享积分</div>
+      <div class="header-sub">邀请好友，赠送50积分</div>
+    </div>
+    <div id="share-login-prompt" class="hidden">
+      <div class="card" style="text-align:center;padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">🎁</div>
+        <div style="font-size:16px;font-weight:600;color:var(--primary);margin-bottom:8px;">分享积分，传递咖啡香</div>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;line-height:1.6;">生成专属分享码发给好友<br>好友领取后即得50积分券<br>快把豆友的好味道分享给伙伴吧～</p>
+        <button class="btn btn-primary" onclick="showPage('index');switchAuthTab('login');">登录后使用</button>
+      </div>
+    </div>
+    <div id="share-content">
+      <!-- 领取分享码（无需登录） -->
+      <div class="card">
+        <div class="card-title">📥 领取好友分享</div>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">输入好友的分享码和你的手机号即可领取</p>
+        <div class="form-group">
+          <label class="form-label">分享码</label>
+          <input class="form-input" id="claim-input" placeholder="输入好友的分享码" style="text-transform:uppercase;letter-spacing:2px;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <input class="form-input" id="claim-phone" type="tel" placeholder="输入你的手机号" maxlength="11">
+        </div>
+        <button class="btn btn-pink" onclick="claimShare()">领取积分券</button>
+      </div>
+      <!-- 生成分享码（需登录） -->
+      <div id="share-create-section" class="hidden">
+        <div class="card">
+          <div class="card-title">📤 生成分享码</div>
+          <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">生成分享码发给好友，好友领取后可获得50积分券</p>
+          <button class="btn btn-primary" onclick="createShare()">🎁 生成分享码</button>
+          <div class="share-card hidden" id="share-result">
+            <div style="font-size:13px;color:var(--text-light);">你的分享码</div>
+            <div class="share-code" id="share-code-text"></div>
+            <div style="font-size:12px;color:var(--text-light);">有效期7天 · 最多5人领取</div>
+            <button class="btn btn-sm btn-outline mt-12" onclick="copyShareCode()">📋 复制分享码</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📝 我的分享记录</div>
+          <div id="share-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <a class="tab-item" id="share-tab-home" onclick="showPage('index')"><span class="tab-icon">🏠</span><span>首页</span></a>
+      <a class="tab-item" onclick="showPage('bean')"><span class="tab-icon">☕</span><span>带豆</span></a>
+      <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
+      <a class="tab-item active"><span class="tab-icon">🎁</span><span>分享</span></a>
+    </div>
+  </div>
+
+  <!-- ===== 畅饮规则 ===== -->
+  <div id="page-rules" class="hidden">
+    <div class="header">
+      <a class="header-back" onclick="showPage('index')">‹</a>
+      <div class="header-title">☕ 畅饮规则</div>
+      <div class="header-sub">豆友咖啡会员制度说明</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🫘 如何获得畅饮资格</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);">
+        <p><strong>带豆到店</strong>：携带 <strong style="color:var(--primary);">100g 及以上</strong>精品咖啡豆到店，经主理人品鉴确认后，即可获得当月畅饮资格。</p>
+        <p style="margin-top:10px;"><strong>畅饮范围</strong>：当月无限次享用美式咖啡、手冲咖啡（单杯价值约 28-38 元）。</p>
+        <p style="margin-top:10px;"><strong>品质要求</strong>：精品级咖啡豆（SCA 评分 80+），产区、海拔、处理法清晰可溯。</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💰 积分系统</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);">
+        <p><strong>积分获取</strong>：每次带豆到店，按 <strong style="color:var(--primary);">1克 = 1积分豆</strong> 累积（正式运营后启用）。</p>
+        <p style="margin-top:10px;"><strong>积分用途</strong>：</p>
+        <ul style="margin-left:20px;margin-top:6px;">
+          <li>兑换饮品折扣券</li>
+          <li>分享给好友（每次 50 积分）</li>
+          <li>参与专属活动</li>
+        </ul>
+        <p style="margin-top:10px;"><strong>有效期</strong>：积分自获得之日起 90 天内有效。</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎁 分享积分</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);">
+        <p><strong>生成分享码</strong>：会员可生成专属分享码，每个分享码最多 <strong style="color:var(--primary);">5 人</strong>领取。</p>
+        <p style="margin-top:10px;"><strong>领取奖励</strong>：好友输入分享码后，立即获得 <strong style="color:var(--primary);">50 积分</strong>（以积分券形式发放）。</p>
+        <p style="margin-top:10px;"><strong>有效期</strong>：分享码 7 天内有效，领取的积分券 30 天内有效。</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ 实验期说明</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);">
+        <p>当前为 <strong style="color:#C2185B;">实验期</strong>，所有注册会员享受 <strong>免费畅饮</strong> 福利！</p>
+        <p style="margin-top:10px;">实验期积分系统暂未启用，待正式运营后自动开启积分累计与分享功能。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 管理员登录 ===== -->
+  <div id="page-admin-login" class="hidden">
+    <div style="text-align:center;padding:40px 0 20px;">
+      <div style="font-size:48px;">🔧</div>
+      <div style="font-size:22px;font-weight:700;color:var(--primary);margin-top:10px;">管理后台</div>
+      <div style="font-size:13px;color:var(--text-light);margin-top:4px;">豆友咖啡 · 运营管理系统</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔑 管理员登录</div>
+      <div class="form-group">
+        <label class="form-label">手机号</label>
+        <input class="form-input" id="admin-phone" type="tel" placeholder="请输入管理员手机号" maxlength="11">
+      </div>
+      <button class="btn btn-primary mt-12" onclick="doAdminLogin()">登录</button>
+    </div>
+    <div class="text-center mt-16">
+      <a onclick="showPage('index')" class="text-light" style="font-size:13px;cursor:pointer;">← 返回首页</a>
+    </div>
+  </div>
+
+  <!-- ===== 管理后台 ===== -->
+  <div id="page-admin" class="hidden">
+    <div class="header">
+      <a class="header-back" onclick="showPage('index')">‹</a>
+      <div class="header-title">🔧 管理后台</div>
+      <div class="header-sub" id="admin-mode"></div>
+    </div>
+    <div class="admin-nav">
+      <div class="admin-nav-item active" id="nav-dash" onclick="switchAdminTab('dash')">📊 概览</div>
+      <div class="admin-nav-item" id="nav-record" onclick="switchAdminTab('record')">☕ 录入</div>
+      <div class="admin-nav-item" id="nav-members" onclick="switchAdminTab('members')">👥 会员</div>
+      <div class="admin-nav-item" id="nav-beans" onclick="switchAdminTab('beans')"> 豆子</div>
+      <div class="admin-nav-item" id="nav-settings" onclick="switchAdminTab('settings')">⚙️ 设置</div>
+    </div>
+    <!-- 概览 -->
+    <div id="admin-dash">
+      <div class="card">
+        <div class="stat-grid">
+          <div class="stat-item"><div class="stat-val" id="s-members">0</div><div class="stat-label">总会员</div></div>
+          <div class="stat-item"><div class="stat-val" id="s-today">0</div><div class="stat-label">今日带豆</div></div>
+          <div class="stat-item"><div class="stat-val" id="s-beans">0g</div><div class="stat-label">累计收豆</div></div>
+          <div class="stat-item"><div class="stat-val" id="s-points">0</div><div class="stat-label">发放积分</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 最近带豆记录</div>
+        <div id="admin-recent"></div>
+      </div>
+    </div>
+    <!-- 录入 -->
+    <div id="admin-record" class="hidden">
+      <div class="card">
+        <div class="card-title">☕ 录入带豆记录</div>
+        <div class="form-group">
+          <label class="form-label">选择会员</label>
+          <select class="form-input" id="rec-member"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">豆品名称</label>
+          <input class="form-input" id="rec-bean" placeholder="如：耶加雪菲 G1 水洗">
+        </div>
+        <div class="bean-form-grid">
+          <div class="form-group">
+            <label class="form-label">产地</label>
+            <input class="form-input" id="rec-origin" placeholder="如：埃塞俄比亚">
+          </div>
+          <div class="form-group">
+            <label class="form-label">海拔 (m)</label>
+            <input class="form-input" id="rec-altitude" placeholder="如：1850-2100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">豆种</label>
+            <input class="form-input" id="rec-variety" placeholder="如：原生种">
+          </div>
+          <div class="form-group">
+            <label class="form-label">烘焙度</label>
+            <select class="form-input" id="rec-roast">
+              <option value="浅烘焙">浅烘焙</option>
+              <option value="中浅烘焙">中浅烘焙</option>
+              <option value="中烘焙">中烘焙</option>
+              <option value="中深烘焙">中深烘焙</option>
+              <option value="深烘焙">深烘焙</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">克数 (g)</label>
+            <input class="form-input" id="rec-grams" type="number" placeholder="输入克数" min="1" value="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">品控结果</label>
+            <select class="form-input" id="rec-quality">
+              <option value="合格">✅ 合格</option>
+              <option value="待改善">⚠️ 待改善</option>
+              <option value="不合格">❌ 不合格</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">风味描述</label>
+            <input class="form-input" id="rec-flavor" placeholder="如：蓝莓、茉莉、蜂蜜">
+          </div>
+          <div class="form-group">
+            <label class="form-label">烘豆日期</label>
+            <input class="form-input" id="rec-roastDate" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">上架日期</label>
+            <input class="form-input" id="rec-shelfDate" type="date">
+          </div>
+          <div class="form-group full">
+            <label class="form-label">主理人测评风味</label>
+            <input class="form-input" id="rec-review" placeholder="如：入口花香明显，尾韵带有蓝莓果甜">
+          </div>
+        </div>
+        <button class="btn btn-primary mt-12" onclick="submitRecord()">✅ 提交记录</button>
+      </div>
+    </div>
+    <!-- 会员 -->
+    <div id="admin-members" class="hidden">
+      <div class="card">
+        <div class="card-title" id="admin-members-title">👥 会员列表 (0人)</div>
+        <div id="admin-member-list"></div>
+      </div>
+    </div>
+    <!-- 豆子管理 -->
+    <div id="admin-beans" class="hidden">
+      <div class="card">
+        <div class="card-title">🫘 在店豆子管理</div>
+        <div style="font-size:13px;color:var(--text-light);margin-bottom:12px;">添加或编辑在店展示的豆子信息，最多展示6支</div>
+        <div id="admin-bean-list"></div>
+        <button class="btn btn-sm btn-primary mt-12" onclick="addShopBean()" style="width:100%;">+ 添加在店豆子</button>
+      </div>
+      <div class="card">
+        <div class="card-title">🏆 本周好豆豆</div>
+        <div style="font-size:13px;color:var(--text-light);margin-bottom:12px;">设置本周推荐的好豆豆，会展示在首页</div>
+        <div id="admin-weekly-bean"></div>
+        <button class="btn btn-sm btn-pink mt-12" onclick="setWeeklyBean()" style="width:100%;">🏆 设置本周好豆豆</button>
+      </div>
+    </div>
+    <!-- 设置 -->
+    <div id="admin-settings" class="hidden">
+      <div class="card">
+        <div class="card-title">🔄 运营模式切换</div>
+        <div style="padding:12px;background:var(--bg);border-radius:var(--radius-sm);font-size:13px;line-height:1.6;">
+          <div><strong id="settings-current-mode"></strong></div>
+          <div class="text-light mt-8" id="settings-mode-desc"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+          <div>
+            <div style="font-weight:500;" id="settings-switch-label"></div>
+            <div class="text-light" style="font-size:12px;" id="settings-switch-desc"></div>
+          </div>
+          <label style="position:relative;width:52px;height:28px;display:inline-block;">
+            <input type="checkbox" id="mode-switch" onchange="toggleMode()" style="opacity:0;width:0;height:0;">
+            <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;" id="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚠️ 数据管理</div>
+        <div style="font-size:13px;color:var(--text-light);margin-bottom:12px;">重置将清除所有数据，此操作不可逆！</div>
+        <button class="btn btn-sm" style="background:var(--danger);color:#fff;border:none;" onclick="resetAllData()">🗑️ 重置所有数据</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 数据层 =====
+var DB_KEY = 'doyou_coffee_db';
+function defaultDB() {
+  return {
+    members: [], contributions: [], points: [], shareCodes: [], pointCoupons: [],
+    shopBeans: [
+      { name:'耶加雪菲', origin:'埃塞俄比亚·耶加雪菲', altitude:'1850-2100m', roast:'浅烘焙', variety:'原生种', flavor:'茉莉、蓝莓、蜂蜜', roastDate:'', shelfDate:'', review:'' },
+      { name:'哥伦比亚 慧兰', origin:'哥伦比亚·慧兰省', altitude:'1700-1900m', roast:'中烘焙', variety:'卡杜拉', flavor:'焦糖、坚果、柑橘', roastDate:'', shelfDate:'', review:'' }
+    ],
+    weeklyBean: null,
+    settings: { mode:'experimental', adminPhone:'18525361301', adminName:'孔哥', pointsPerGram:1, pointsExpiryDays:90, dineInMax:.3, takeoutMax:.2 },
+    nextId: { member:1001, contrib:1, point:1, share:1, coupon:1 }
+  };
+}
+var db;
+function loadDB() {
+  try {
+    var r = localStorage.getItem(DB_KEY);
+    if (r) {
+      db = JSON.parse(r);
+      var d = defaultDB();
+      for (var k in d) { if (db[k] === undefined) db[k] = d[k]; }
+      // 更新管理员手机号
+      if (db.settings && db.settings.adminPhone !== '18525361301') {
+        db.settings.adminPhone = '18525361301';
+      }
+    } else {
+      db = defaultDB();
+    }
+  } catch(e) { db = defaultDB(); }
+  saveDB();
+}
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function isExp() { return db.settings.mode === 'experimental'; }
+function fmtDate(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDT(iso) { if (!iso) return ''; return fmtDate(iso)+' '+String(new Date(iso).getHours()).padStart(2,'0')+':'+String(new Date(iso).getMinutes()).padStart(2,'0'); }
+function toast(msg) { var el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; document.body.appendChild(el); setTimeout(function(){ el.remove(); }, 2000); }
+
+// ===== 当前用户 =====
+var currentMember = null;
+function getCurrentMember() {
+  var id = parseInt(localStorage.getItem('doyou_current_member'));
+  if (!id) return null;
+  return db.members.find(function(m){ return m.id === id; }) || null;
+}
+
+// ===== 页面路由 =====
+var pages = ['index','member','bean','points','share','rules','admin-login','admin'];
+function showPage(name) {
+  pages.forEach(function(p) {
+    var el = document.getElementById('page-'+p);
+    if (el) el.className = (p === name) ? '' : 'hidden';
+  });
+  if (name === 'index') loadIndexPage();
+  if (name === 'member') loadMemberPage();
+  if (name === 'bean') loadBeanPage();
+  if (name === 'points') loadPointsPage();
+  if (name === 'share') loadSharePage();
+  if (name === 'admin') loadAdminPage();
+}
+
+// ===== 首页 =====
+function loadIndexPage() {
+  var m = getCurrentMember();
+  if (m) {
+    document.getElementById('index-status').textContent = '畅饮权益：✅ 已激活';
+    document.getElementById('idx-points-val').innerHTML = (m.pointsBalance||0) + '<span>豆 ≈ ¥' + ((m.pointsBalance||0)*0.5).toFixed(2) + '</span>';
+    var monthlyPts = db.points.filter(function(p){ return p.memberId===m.id && p.createdAt && p.createdAt.substring(0,7)===new Date().toISOString().substring(0,7); });
+    var monthGain = monthlyPts.reduce(function(s,p){ return s+p.amount; }, 0);
+    var coupons = db.pointCoupons.filter(function(c){ return c.ownerId===m.id && !c.used; });
+    document.getElementById('idx-monthly').textContent = '+' + monthGain;
+    document.getElementById('idx-shared').textContent = coupons.length;
+    document.getElementById('idx-used').textContent = '-' + (monthGain - (m.pointsBalance||0));
+    document.getElementById('index-auth').className = 'hidden';
+    document.getElementById('index-points-card').style.display = 'block';
+  } else {
+    document.getElementById('index-status').textContent = '畅饮权益：未激活 · 带100g豆即可激活';
+    document.getElementById('idx-points-val').innerHTML = '0<span>豆 ≈ ¥0.00</span>';
+    document.getElementById('idx-monthly').textContent = '+0';
+    document.getElementById('idx-shared').textContent = '0';
+    document.getElementById('idx-used').textContent = '-0';
+    document.getElementById('index-auth').className = '';
+  }
+  // 实验期横幅
+  document.getElementById('exp-banner').className = isExp() ? 'banner banner-pink' : 'hidden';
+  // 在店豆子
+  renderShopBeans();
+  // 本周好豆豆
+  renderWeeklyBean();
+}
+
+function renderShopBeans() {
+  var beans = db.shopBeans || [];
+  var html = '';
+  if (beans.length === 0) {
+    html = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">🫘</div><div>暂无在店豆子</div></div>';
+  } else {
+    beans.forEach(function(b) {
+      var emoji = b.roast && b.roast.indexOf('深') >= 0 ? '🟤' : '🟠';
+      html += '<div class="bean-card">';
+      html += '<div class="bean-card-img">' + emoji + '</div>';
+      html += '<div class="bean-card-name">' + b.name + '</div>';
+      html += '<div class="bean-card-origin">' + b.origin + '</div>';
+      html += '<div class="bean-card-tags">';
+      html += '<span class="bean-tag bean-tag-brown">' + b.roast + '</span>';
+      html += '<span class="bean-tag bean-tag-green">' + b.altitude + '</span>';
+      if (b.variety) html += '<span class="bean-tag bean-tag-blue">' + b.variety + '</span>';
+      html += '</div></div>';
+    });
+  }
+  document.getElementById('shop-beans-grid').innerHTML = html;
+}
+
+function renderWeeklyBean() {
+  var wb = db.weeklyBean;
+  var wrap = document.getElementById('weekly-detail-wrap');
+  if (!wb) {
+    document.getElementById('weekly-sub').textContent = '暂无本周推荐，管理员可在后台设置';
+    wrap.innerHTML = '';
+    return;
+  }
+  document.getElementById('weekly-sub').textContent = fmtDate(wb.selectedAt) + ' 更新';
+  var html = '<div class="weekly-detail">';
+  html += '<div class="weekly-detail-name">' + wb.name + '</div>';
+  html += '<div class="weekly-detail-origin">' + wb.origin + '</div>';
+  html += '<div class="weekly-info-grid">';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">烘焙度</div><div class="weekly-info-val">' + (wb.roast||'-') + '</div></div>';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">海拔</div><div class="weekly-info-val">' + (wb.altitude||'-') + '</div></div>';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">豆种</div><div class="weekly-info-val">' + (wb.variety||'-') + '</div></div>';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">烘焙方式</div><div class="weekly-info-val">' + (wb.roastMethod||'-') + '</div></div>';
+  html += '</div>';
+  if (wb.flavor) {
+    html += '<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-light);">风味描述：</span><span style="font-size:13px;font-weight:500;">' + wb.flavor + '</span></div>';
+  }
+  if (wb.review) {
+    html += '<div class="weekly-review">';
+    html += '<div class="weekly-review-title">👨‍🍳 主理人测评</div>';
+    html += '<div class="weekly-review-text">' + wb.review + '</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('tab-reg').className = tab==='reg' ? 'tab-btn active' : 'tab-btn';
+  document.getElementById('tab-login').className = tab==='login' ? 'tab-btn active' : 'tab-btn';
+  document.getElementById('auth-reg').className = tab==='reg' ? 'auth-card' : 'auth-card hidden';
+  document.getElementById('auth-login').className = tab==='login' ? 'auth-card' : 'auth-card hidden';
+}
+
+function goFeature(feat) {
+  if (feat === 'share') { showPage('share'); return; }
+  if (feat === 'records') { showPage('points'); return; }
+  if (feat === 'rules') { showPage('rules'); return; }
+  var m = getCurrentMember();
+  if (!m) { toast('请先登录'); switchAuthTab('login'); return; }
+  if (feat === 'admin') showPage('admin-login');
+}
+
+// ===== 注册 =====
+function doRegister() {
+  var nick = document.getElementById('reg-nickname').value.trim();
+  var phone = document.getElementById('reg-phone').value.trim();
+  if (!nick) { toast('请输入昵称'); return; }
+  if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
+  if (db.members.find(function(m){ return m.phone === phone; })) { toast('该手机号已注册，请直接登录'); switchAuthTab('login'); return; }
+  var m = { id:db.nextId.member++, phone:phone, nickname:nick, registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:false };
+  db.members.push(m); saveDB();
+  localStorage.setItem('doyou_current_member', m.id.toString());
+  currentMember = m;
+  toast('注册成功！');
+  setTimeout(function(){ showPage('member'); }, 800);
+}
+
+// ===== 登录 =====
+function doLogin() {
+  var phone = document.getElementById('login-phone').value.trim();
+  if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
+  var m = db.members.find(function(m){ return m.phone === phone; });
+  if (!m) { toast('该手机号未注册，请先注册'); switchAuthTab('reg'); return; }
+  localStorage.setItem('doyou_current_member', m.id.toString());
+  currentMember = m;
+  toast('登录成功！');
+  setTimeout(function(){ showPage('member'); }, 500);
+}
+
+function doLogout() {
+  if (confirm('确定退出登录？')) { localStorage.removeItem('doyou_current_member'); currentMember = null; showPage('index'); }
+}
+
+// ===== 会员主页 =====
+function loadMemberPage() {
+  var m = getCurrentMember();
+  if (!m) { showPage('index'); return; }
+  currentMember = m;
+  document.getElementById('m-nickname').textContent = m.nickname;
+  document.getElementById('m-info').textContent = '会员编号 #'+m.id+' · 注册于 '+fmtDate(m.registeredAt);
+  document.getElementById('m-beans').textContent = (m.beanTotal||0)+'g';
+  document.getElementById('m-points').textContent = m.pointsBalance||0;
+  var contribs = db.contributions.filter(function(c){ return c.memberId === m.id; });
+  document.getElementById('m-contrib').textContent = contribs.length;
+  var coupons = db.pointCoupons.filter(function(c){ return c.ownerId===m.id && !c.used && new Date(c.expiresAt)>new Date(); });
+  document.getElementById('m-coupons').textContent = coupons.length;
+  if (isExp()) {
+    document.getElementById('m-status').textContent = '🎉 实验期 · 免费畅饮中';
+    document.getElementById('m-status').className = 'banner banner-pink';
+    document.getElementById('m-notice').innerHTML = '3. 实验期：<strong style="color:#C2185B">所有会员免费畅饮</strong>，积分系统暂未启用';
+  } else {
+    document.getElementById('m-status').textContent = '✅ 畅饮有效';
+    document.getElementById('m-status').className = 'banner banner-green';
+    document.getElementById('m-notice').textContent = '3. 积分有效期90天，可分享给好友';
+  }
+}
+
+// ===== 带豆记录 =====
+function loadBeanPage() {
+  var m = getCurrentMember(); if (!m) { showPage('index'); return; }
+  document.getElementById('bean-total').textContent = '累计带豆 '+(m.beanTotal||0)+'g';
+  var contribs = db.contributions.filter(function(c){ return c.memberId === m.id; }).sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
+  var html = '';
+  if (contribs.length > 0) {
+    contribs.forEach(function(c) {
+      html += '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">';
+      html += '<div style="display:flex;align-items:center;margin-bottom:8px;">';
+      html += '<div class="list-icon" style="background:#FFF3E0;margin:0;">☕</div>';
+      html += '<div style="flex:1;margin-left:10px;"><div class="list-title">'+c.beanName+'</div><div class="list-desc">'+fmtDT(c.date)+' · '+c.qualityResult+'</div></div>';
+      html += '<div class="list-extra"><span class="badge badge-green">+'+c.earnedPoints+'分</span> <span style="font-weight:600;color:var(--primary);margin-left:4px;">'+c.grams+'g</span></div>';
+      html += '</div>';
+      // 豆子明细
+      if (c.origin || c.altitude || c.variety || c.roast || c.flavor || c.roastDate || c.shelfDate || c.review) {
+        html += '<div style="background:var(--bg);border-radius:10px;padding:10px;margin-top:8px;">';
+        if (c.origin) html += '<div class="bean-detail-row"><span class="bean-detail-label">产地</span><span class="bean-detail-val">'+c.origin+'</span></div>';
+        if (c.altitude) html += '<div class="bean-detail-row"><span class="bean-detail-label">海拔</span><span class="bean-detail-val">'+c.altitude+'</span></div>';
+        if (c.variety) html += '<div class="bean-detail-row"><span class="bean-detail-label">豆种</span><span class="bean-detail-val">'+c.variety+'</span></div>';
+        if (c.roast) html += '<div class="bean-detail-row"><span class="bean-detail-label">烘焙度</span><span class="bean-detail-val">'+c.roast+'</span></div>';
+        if (c.flavor) html += '<div class="bean-detail-row"><span class="bean-detail-label">风味</span><span class="bean-detail-val">'+c.flavor+'</span></div>';
+        if (c.roastDate) html += '<div class="bean-detail-row"><span class="bean-detail-label">烘豆日期</span><span class="bean-detail-val">'+fmtDate(c.roastDate)+'</span></div>';
+        if (c.shelfDate) html += '<div class="bean-detail-row"><span class="bean-detail-label">上架日期</span><span class="bean-detail-val">'+fmtDate(c.shelfDate)+'</span></div>';
+        if (c.review) html += '<div class="bean-detail-row"><span class="bean-detail-label">主理人测评</span><span class="bean-detail-val">'+c.review+'</span></div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+  } else {
+    html = '<div class="empty"><div class="empty-icon"></div><div>还没有带豆记录<br>带100g+精品豆到店开启第一次记录吧！</div></div>';
+  }
+  document.getElementById('bean-list').innerHTML = html;
+}
+
+// ===== 积分 =====
+function loadPointsPage() {
+  var m = getCurrentMember();
+  if (!m) {
+    document.getElementById('points-login-prompt').className = '';
+    document.getElementById('points-content').className = 'hidden';
+    document.getElementById('points-back-btn').setAttribute('onclick','showPage(\'index\')');
+    var tabHome = document.getElementById('points-tab-home');
+    tabHome.setAttribute('onclick','showPage(\'index\')');
+    tabHome.querySelector('span:last-child').textContent = '首页';
+    document.getElementById('points-balance').textContent = '';
+    return;
+  }
+  document.getElementById('points-login-prompt').className = 'hidden';
+  document.getElementById('points-content').className = '';
+  document.getElementById('points-back-btn').setAttribute('onclick','showPage(\'member\')');
+  var tabHome2 = document.getElementById('points-tab-home');
+  tabHome2.setAttribute('onclick','showPage(\'member\')');
+  tabHome2.querySelector('span:last-child').textContent = '主页';
+  document.getElementById('points-balance').textContent = '余额：'+(m.pointsBalance||0)+' 积分豆';
+  var pts = db.points.filter(function(p){ return p.memberId === m.id; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
+  var html = '';
+  if (pts.length > 0) {
+    pts.forEach(function(p) {
+      html += '<div class="list-item" style="cursor:default;"><div class="list-icon" style="background:var(--pink-light);">💰</div><div class="list-content"><div class="list-title">'+(p.description||p.type)+'</div><div class="list-desc">'+fmtDT(p.createdAt)+' · 到期 '+fmtDate(p.expiresAt)+'</div></div><div class="list-extra" style="color:var(--primary);font-weight:600;">+'+p.amount+'</div></div>';
+    });
+  } else { html = '<div class="empty"><div class="empty-icon">💰</div><div>暂无积分记录</div></div>'; }
+  document.getElementById('points-list').innerHTML = html;
+  var coupons = db.pointCoupons.filter(function(c){ return c.ownerId===m.id && !c.used && new Date(c.expiresAt)>new Date(); });
+  html = '';
+  if (coupons.length > 0) {
+    coupons.forEach(function(c) {
+      var from = db.members.find(function(mm){ return mm.id === c.fromMemberId; });
+      html += '<div class="list-item" style="cursor:default;"><div class="list-icon" style="background:#E8F5E9;">🎟️</div><div class="list-content"><div class="list-title">来自 '+(from?from.nickname:'好友')+' 的分享</div><div class="list-desc">'+c.amount+'积分 · 堂食'+Math.round(c.dineInMax*100)+'%上限 · 到期 '+fmtDate(c.expiresAt)+'</div></div></div>';
+    });
+  } else { html = '<div class="empty"><div>暂无可用积分券，快去分享邀请好友吧！</div></div>'; }
+  document.getElementById('coupons-list').innerHTML = html;
+}
+
+// ===== 分享 =====
+function loadSharePage() {
+  var m = getCurrentMember();
+  if (!m) {
+    document.getElementById('share-login-prompt').className = 'hidden';
+    document.getElementById('share-content').className = '';
+    document.getElementById('share-create-section').className = 'hidden';
+    // 更新导航：首页模式
+    document.getElementById('share-back-btn').setAttribute('onclick','showPage(\'index\')');
+    var tabHome = document.getElementById('share-tab-home');
+    tabHome.setAttribute('onclick','showPage(\'index\')');
+    tabHome.querySelector('span:last-child').textContent = '首页';
+    return;
+  }
+  document.getElementById('share-login-prompt').className = 'hidden';
+  document.getElementById('share-content').className = '';
+  document.getElementById('share-create-section').className = '';
+  // 更新导航：会员模式
+  document.getElementById('share-back-btn').setAttribute('onclick','showPage(\'member\')');
+  var tabHome2 = document.getElementById('share-tab-home');
+  tabHome2.setAttribute('onclick','showPage(\'member\')');
+  tabHome2.querySelector('span:last-child').textContent = '主页';
+  var codes = db.shareCodes.filter(function(s){ return s.creatorId === m.id; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
+  var html = '';
+  if (codes.length > 0) {
+    codes.forEach(function(s) {
+      html += '<div class="list-item" style="cursor:default;"><div class="list-content"><div class="list-title" style="font-family:monospace;letter-spacing:1px;">'+s.code+'</div><div class="list-desc">已领取 '+s.claimedBy.length+'/'+s.maxClaims+'人 · 到期 '+fmtDate(s.expiresAt)+'</div></div><div class="list-extra">'+(s.active?'<span class="badge badge-green">有效</span>':'<span class="badge badge-orange">失效</span>')+'</div></div>';
+    });
+  } else { html = '<div class="empty"><div>还没有分享记录</div></div>'; }
+  document.getElementById('share-list').innerHTML = html;
+}
+function createShare() {
+  var m = getCurrentMember(); if (!m) return;
+  var code = 'DY'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase();
+  var sc = { id:db.nextId.share++, creatorId:m.id, code:code, pointsAmount:50, maxClaims:5, claimedBy:[], createdAt:new Date().toISOString(), expiresAt:new Date(Date.now()+7*86400000).toISOString(), active:true };
+  db.shareCodes.push(sc); saveDB();
+  document.getElementById('share-code-text').textContent = code;
+  document.getElementById('share-result').className = 'share-card';
+  toast('分享码已生成！');
+  loadSharePage();
+}
+function copyShareCode() {
+  var code = document.getElementById('share-code-text').textContent;
+  if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function(){ toast('已复制到剪贴板'); }); }
+  else { var ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('已复制到剪贴板'); }
+}
+function claimShare() {
+  var code = document.getElementById('claim-input').value.trim().toUpperCase();
+  var phone = document.getElementById('claim-phone').value.trim();
+  if (!code) { toast('请输入分享码'); return; }
+  if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
+  var sc = db.shareCodes.find(function(s){ return s.code === code; });
+  if (!sc) { toast('分享码不存在'); return; }
+  if (!sc.active) { toast('分享码已失效'); return; }
+  if (new Date(sc.expiresAt)<new Date()) { toast('分享码已过期'); return; }
+  if (sc.claimedBy.length>=sc.maxClaims) { toast('领取人数已满'); return; }
+  // 查找或创建会员
+  var m = db.members.find(function(mm){ return mm.phone === phone; });
+  if (!m) {
+    m = { id:db.nextId.member++, phone:phone, nickname:'豆友'+phone.slice(-4), registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:false };
+    db.members.push(m);
+  }
+  if (sc.claimedBy.indexOf(m.id)>=0) { toast('你已经领取过了'); return; }
+  sc.claimedBy.push(m.id); saveDB();
+  // 创建积分券并直接增加积分余额
+  var coupon = { id:db.nextId.coupon++, ownerId:m.id, fromShareCodeId:sc.id, fromMemberId:sc.creatorId, amount:sc.pointsAmount, used:false, dineInMax:db.settings.dineInMax, takeoutMax:db.settings.takeoutMax, createdAt:new Date().toISOString(), expiresAt:new Date(Date.now()+30*86400000).toISOString() };
+  db.pointCoupons.push(coupon);
+  m.pointsBalance = (m.pointsBalance||0) + sc.pointsAmount;
+  saveDB();
+  document.getElementById('claim-input').value = '';
+  document.getElementById('claim-phone').value = '';
+  toast('领取成功！获得'+sc.pointsAmount+'积分，已存入你的账户');
+}
+
+// ===== 管理员 =====
+function doAdminLogin() {
+  var phone = document.getElementById('admin-phone').value.trim();
+  if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
+  var settings = db.settings;
+  if (phone === settings.adminPhone) {
+    var admin = db.members.find(function(m){ return m.phone === phone && m.isAdmin; });
+    if (!admin) { admin = { id:9999, phone:phone, nickname:settings.adminName, registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:true }; db.members.push(admin); saveDB(); }
+    localStorage.setItem('doyou_current_member', admin.id.toString());
+    currentMember = admin;
+    toast('管理员登录成功！');
+    setTimeout(function(){ showPage('admin'); }, 500);
+  } else { toast('手机号不是管理员账号'); }
+}
+
+// ===== 管理后台 =====
+function loadAdminPage() {
+  var m = getCurrentMember();
+  if (!m || !m.isAdmin) { showPage('admin-login'); return; }
+  var mode = isExp();
+  document.getElementById('admin-mode').innerHTML = '当前模式：<span class="mode-badge '+(mode?'mode-exp':'mode-op')+'">'+(mode?' 实验期':'🚀 正式运营')+'</span>';
+  var members = db.members.filter(function(m){ return !m.isAdmin; });
+  var contribs = db.contributions;
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('s-members').textContent = members.length;
+  document.getElementById('s-today').textContent = contribs.filter(function(c){ return c.date.startsWith(today); }).length;
+  document.getElementById('s-beans').textContent = members.reduce(function(s,m){ return s+(m.beanTotal||0); }, 0)+'g';
+  document.getElementById('s-points').textContent = db.points.reduce(function(s,p){ return s+p.amount; }, 0);
+  // 最近记录
+  var recent = contribs.slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); }).slice(0,5);
+  var html = '';
+  if (recent.length > 0) {
+    recent.forEach(function(c) {
+      var mm = db.members.find(function(m){ return m.id === c.memberId; });
+      html += '<div class="list-item" style="cursor:default;"><div class="list-icon" style="background:#FFF3E0;">☕</div><div class="list-content"><div class="list-title">'+(mm?mm.nickname:'?')+' · '+c.beanName+'</div><div class="list-desc">'+fmtDT(c.date)+'</div></div><div class="list-extra">'+c.grams+'g</div></div>';
+    });
+  } else { html = '<div class="empty"><div>暂无记录</div></div>'; }
+  document.getElementById('admin-recent').innerHTML = html;
+  // 会员列表
+  document.getElementById('admin-members-title').textContent = '👥 会员列表 ('+members.length+'人)';
+  html = '';
+  if (members.length > 0) {
+    members.forEach(function(m) {
+      html += '<div class="list-item" style="cursor:default;"><div class="list-icon" style="background:var(--pink-light);">🫘</div><div class="list-content"><div class="list-title">'+m.nickname+' <span class="text-light" style="font-size:12px;">#'+m.id+'</span></div><div class="list-desc">'+m.phone+' · 累计'+(m.beanTotal||0)+'g · <span style="color:var(--success);">畅饮中</span></div></div><div class="list-extra" style="font-size:12px;">'+fmtDate(m.registeredAt)+'</div></div>';
+    });
+  } else { html = '<div class="empty"><div>暂无会员</div></div>'; }
+  document.getElementById('admin-member-list').innerHTML = html;
+  // 会员下拉
+  var sel = document.getElementById('rec-member');
+  sel.innerHTML = '<option value="">-- 请选择 --</option>';
+  members.forEach(function(m) { sel.innerHTML += '<option value="'+m.id+'">'+m.nickname+' (#'+m.id+')</option>'; });
+  // 在店豆子管理
+  html = '';
+  var shopBeans = db.shopBeans || [];
+  if (shopBeans.length > 0) {
+    shopBeans.forEach(function(b, i) {
+      html += '<div style="padding:12px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;justify-content:space-between;">';
+      html += '<div><strong>'+b.name+'</strong> <span class="text-light" style="font-size:12px;">'+b.origin+'</span></div>';
+      html += '<div style="display:flex;gap:6px;">';
+      html += '<button class="btn btn-sm btn-outline" onclick="editShopBean('+i+')" style="padding:4px 10px;font-size:12px;">编辑</button>';
+      html += '<button class="btn btn-sm" onclick="removeShopBean('+i+')" style="padding:4px 10px;font-size:12px;background:var(--danger);color:#fff;border:none;">删除</button>';
+      html += '</div></div>';
+      html += '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">'+b.roast+' · '+b.altitude+' · '+b.variety+'</div>';
+      html += '</div>';
+    });
+  } else { html = '<div class="empty"><div>暂无在店豆子</div></div>'; }
+  document.getElementById('admin-bean-list').innerHTML = html;
+  // 本周好豆
+  var wb = db.weeklyBean;
+  if (wb) {
+    html = '<div style="padding:12px;background:var(--bg);border-radius:10px;">';
+    html += '<div style="font-weight:600;">'+wb.name+' · '+wb.origin+'</div>';
+    html += '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">'+wb.roast+' · 更新于 '+fmtDate(wb.selectedAt)+'</div>';
+    html += '</div>';
+  } else { html = '<div class="empty"><div>暂未设置</div></div>'; }
+  document.getElementById('admin-weekly-bean').innerHTML = html;
+  // 设置
+  document.getElementById('settings-current-mode').textContent = '当前：'+(mode?'🧪 实验期模式':' 正式运营模式');
+  document.getElementById('settings-mode-desc').textContent = mode?'实验期：所有会员免费畅饮，积分系统不启动，仅记录带豆数据。':'正式运营：完整带豆→积分→分享裂变流程启动。';
+  document.getElementById('settings-switch-label').textContent = '切换到 '+(mode?'正式运营':'实验期');
+  document.getElementById('settings-switch-desc').textContent = mode?'新注册需带豆（已注册首月免费）':'所有会员免费畅饮';
+  document.getElementById('mode-switch').checked = !mode;
+}
+
+function switchAdminTab(tab) {
+  ['dash','record','members','beans','settings'].forEach(function(t) {
+    var el = document.getElementById('admin-'+t);
+    var nav = document.getElementById('nav-'+t);
+    if (el) el.className = (t===tab) ? '' : 'hidden';
+    if (nav) nav.className = (t===tab) ? 'admin-nav-item active' : 'admin-nav-item';
+  });
+  if (tab === 'beans') {
+    var shopBeans = db.shopBeans || [];
+    var html = '';
+    if (shopBeans.length > 0) {
+      shopBeans.forEach(function(b, i) {
+        html += '<div style="padding:12px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;justify-content:space-between;">';
+        html += '<div><strong>'+b.name+'</strong> <span class="text-light" style="font-size:12px;">'+b.origin+'</span></div>';
+        html += '<div style="display:flex;gap:6px;">';
+        html += '<button class="btn btn-sm btn-outline" onclick="editShopBean('+i+')" style="padding:4px 10px;font-size:12px;">编辑</button>';
+        html += '<button class="btn btn-sm" onclick="removeShopBean('+i+')" style="padding:4px 10px;font-size:12px;background:var(--danger);color:#fff;border:none;">删除</button>';
+        html += '</div></div>';
+        html += '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">'+b.roast+' · '+b.altitude+' · '+b.variety+'</div>';
+        html += '</div>';
+      });
+    } else { html = '<div class="empty"><div>暂无在店豆子</div></div>'; }
+    document.getElementById('admin-bean-list').innerHTML = html;
+    var wb = db.weeklyBean;
+    if (wb) {
+      html = '<div style="padding:12px;background:var(--bg);border-radius:10px;">';
+      html += '<div style="font-weight:600;">'+wb.name+' · '+wb.origin+'</div>';
+      html += '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">'+wb.roast+' · 更新于 '+fmtDate(wb.selectedAt)+'</div>';
+      html += '</div>';
+    } else { html = '<div class="empty"><div>暂未设置</div></div>'; }
+    document.getElementById('admin-weekly-bean').innerHTML = html;
+  }
+  if (tab === 'record' || tab === 'members' || tab === 'beans' || tab === 'settings') loadAdminPage();
+}
+
+function submitRecord() {
+  var mid = parseInt(document.getElementById('rec-member').value);
+  var bean = document.getElementById('rec-bean').value.trim();
+  var grams = parseInt(document.getElementById('rec-grams').value);
+  var quality = document.getElementById('rec-quality').value;
+  if (!mid || !bean || !grams) { toast('请填写会员、豆名和克数'); return; }
+  if (grams < 1) { toast('克数至少为1'); return; }
+  var earnedPoints = isExp() ? 0 : grams * db.settings.pointsPerGram;
+  var c = {
+    id: db.nextId.contrib++, memberId: mid, date: new Date().toISOString(),
+    beanName: bean, grams: grams, qualityResult: quality, earnedPoints: earnedPoints,
+    origin: document.getElementById('rec-origin').value.trim(),
+    altitude: document.getElementById('rec-altitude').value.trim(),
+    variety: document.getElementById('rec-variety').value.trim(),
+    roast: document.getElementById('rec-roast').value,
+    flavor: document.getElementById('rec-flavor').value.trim(),
+    roastDate: document.getElementById('rec-roastDate').value,
+    shelfDate: document.getElementById('rec-shelfDate').value,
+    review: document.getElementById('rec-review').value.trim()
+  };
+  db.contributions.push(c);
+  var m = db.members.find(function(mm){ return mm.id === mid; });
+  if (m) {
+    m.beanTotal = (m.beanTotal||0) + grams;
+    if (!isExp()) m.pointsBalance = (m.pointsBalance||0) + earnedPoints;
+  }
+  // 同时更新在店豆子信息
+  var existingBean = (db.shopBeans||[]).find(function(b){ return b.name === bean; });
+  if (existingBean) {
+    if (c.origin) existingBean.origin = c.origin;
+    if (c.altitude) existingBean.altitude = c.altitude;
+    if (c.variety) existingBean.variety = c.variety;
+    if (c.roast) existingBean.roast = c.roast;
+    if (c.flavor) existingBean.flavor = c.flavor;
+    if (c.roastDate) existingBean.roastDate = c.roastDate;
+    if (c.shelfDate) existingBean.shelfDate = c.shelfDate;
+    if (c.review) existingBean.review = c.review;
+  } else if (c.origin || c.flavor) {
+    if (!db.shopBeans) db.shopBeans = [];
+    db.shopBeans.push({
+      name: bean, origin: c.origin||'', altitude: c.altitude||'',
+      roast: c.roast||'', variety: c.variety||'', flavor: c.flavor||'',
+      roastDate: c.roastDate||'', shelfDate: c.shelfDate||'', review: c.review||''
+    });
+  }
+  saveDB();
+  toast('录入成功！');
+  document.getElementById('rec-bean').value = '';
+  document.getElementById('rec-origin').value = '';
+  document.getElementById('rec-altitude').value = '';
+  document.getElementById('rec-variety').value = '';
+  document.getElementById('rec-flavor').value = '';
+  document.getElementById('rec-roastDate').value = '';
+  document.getElementById('rec-shelfDate').value = '';
+  document.getElementById('rec-review').value = '';
+  document.getElementById('rec-grams').value = '100';
+  document.getElementById('rec-quality').value = '合格';
+  loadAdminPage();
+}
+
+function addShopBean() {
+  var name = prompt('豆子名称：');
+  if (!name) return;
+  var origin = prompt('产地：') || '';
+  var altitude = prompt('海拔：') || '';
+  var roast = prompt('烘焙度（浅烘焙/中烘焙/深烘焙）：') || '中烘焙';
+  var variety = prompt('豆种：') || '';
+  var flavor = prompt('风味描述：') || '';
+  var roastMethod = prompt('烘焙方式：') || '';
+  var review = prompt('主理人测评：') || '';
+  if (!db.shopBeans) db.shopBeans = [];
+  db.shopBeans.push({ name:name, origin:origin, altitude:altitude, roast:roast, variety:variety, flavor:flavor, roastDate:'', shelfDate:'', review:review, roastMethod:roastMethod });
+  saveDB(); toast('已添加'); loadAdminPage();
+}
+
+function editShopBean(idx) {
+  var b = db.shopBeans[idx]; if (!b) return;
+  var name = prompt('豆子名称：', b.name); if (!name) return;
+  b.name = name;
+  b.origin = prompt('产地：', b.origin) || '';
+  b.altitude = prompt('海拔：', b.altitude) || '';
+  b.roast = prompt('烘焙度：', b.roast) || '';
+  b.variety = prompt('豆种：', b.variety) || '';
+  b.flavor = prompt('风味描述：', b.flavor) || '';
+  b.roastMethod = prompt('烘焙方式：', b.roastMethod||'') || '';
+  b.review = prompt('主理人测评：', b.review) || '';
+  b.roastDate = prompt('烘豆日期（YYYY-MM-DD）：', b.roastDate||'') || '';
+  b.shelfDate = prompt('上架日期（YYYY-MM-DD）：', b.shelfDate||'') || '';
+  saveDB(); toast('已更新'); loadAdminPage();
+}
+
+function removeShopBean(idx) {
+  if (confirm('确定删除这支豆子？')) {
+    db.shopBeans.splice(idx, 1);
+    saveDB(); toast('已删除'); loadAdminPage();
+  }
+}
+
+function setWeeklyBean() {
+  var shopBeans = db.shopBeans || [];
+  if (shopBeans.length === 0) { toast('请先添加在店豆子'); return; }
+  var options = shopBeans.map(function(b,i){ return (i+1)+'. '+b.name; }).join('\n');
+  var choice = prompt('选择本周好豆豆（输入编号）：\n'+options);
+  if (!choice) return;
+  var idx = parseInt(choice) - 1;
+  if (idx < 0 || idx >= shopBeans.length) { toast('编号无效'); return; }
+  var b = shopBeans[idx];
+  var review = prompt('本周主理人测评：', b.review||'') || '';
+  var roastMethod = prompt('本周烘焙方式：', b.roastMethod||'') || b.roast;
+  db.weeklyBean = {
+    name: b.name, origin: b.origin, altitude: b.altitude, roast: b.roast,
+    variety: b.variety, flavor: b.flavor, roastMethod: roastMethod,
+    review: review, selectedAt: new Date().toISOString()
+  };
+  saveDB(); toast('已设置为本周好豆豆 '); loadAdminPage();
+}
+
+function toggleMode() {
+  var newMode = isExp() ? 'operational' : 'experimental';
+  var msg = newMode==='operational' ? '切换到正式运营模式？\n新注册需带豆激活畅饮，已注册用户首月免费。' : '切换到实验期模式？\n所有会员将恢复免费畅饮，积分系统暂停。';
+  if (confirm(msg)) { db.settings.mode = newMode; saveDB(); toast(newMode==='operational'?'已切换为正式运营 🚀':'已切换为实验期 🧪'); loadAdminPage(); }
+}
+
+function resetAllData() {
+  if (confirm('确定要重置所有数据吗？此操作不可逆！') && confirm('再次确认：真的要重置吗？')) {
+    db = defaultDB(); saveDB(); toast('数据已重置'); loadAdminPage();
+  }
+}
+
+// ===== 初始化 =====
+loadDB();
+var m = getCurrentMember();
+if (m && m.isAdmin) { showPage('admin'); }
+else if (m) { showPage('member'); }
+else { showPage('index'); }
+</script>
+</body>
+</html>
