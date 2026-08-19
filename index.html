@@ -796,7 +796,8 @@ function doRegister() {
   if (!nick) { toast('请输入昵称'); return; }
   if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
   if (db.members.find(function(m){ return m.phone === phone; })) { toast('该手机号已注册，请直接登录'); switchAuthTab('login'); return; }
-  var m = { id:db.nextId.member++, phone:phone, nickname:nick, registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:false };
+  var isAdminPhone = (phone === db.settings.adminPhone);
+  var m = { id:db.nextId.member++, phone:phone, nickname:nick, registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:isAdminPhone };
   db.members.push(m); saveDB();
   localStorage.setItem('doyou_current_member', m.id.toString());
   currentMember = m;
@@ -810,6 +811,8 @@ function doLogin() {
   if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
   var m = db.members.find(function(m){ return m.phone === phone; });
   if (!m) { toast('该手机号未注册，请先注册'); switchAuthTab('reg'); return; }
+  // 管理员手机号自动提升权限
+  if (phone === db.settings.adminPhone && !m.isAdmin) { m.isAdmin = true; saveDB(); }
   localStorage.setItem('doyou_current_member', m.id.toString());
   currentMember = m;
   toast('登录成功！');
@@ -1001,8 +1004,14 @@ function doAdminLogin() {
   if (!phone || phone.length < 11) { toast('请输入正确的手机号'); return; }
   var settings = db.settings;
   if (phone === settings.adminPhone) {
-    var admin = db.members.find(function(m){ return m.phone === phone && m.isAdmin; });
-    if (!admin) { admin = { id:9999, phone:phone, nickname:settings.adminName, registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:true }; db.members.push(admin); saveDB(); }
+    var admin = db.members.find(function(m){ return m.phone === phone; });
+    if (!admin) {
+      admin = { id:db.nextId.member++, phone:phone, nickname:settings.adminName, registeredAt:new Date().toISOString(), beanTotal:0, pointsBalance:0, memberStatus:'active', freeExpiry:null, isAdmin:true };
+      db.members.push(admin);
+    } else if (!admin.isAdmin) {
+      admin.isAdmin = true;
+    }
+    saveDB();
     localStorage.setItem('doyou_current_member', admin.id.toString());
     currentMember = admin;
     toast('管理员登录成功！');
