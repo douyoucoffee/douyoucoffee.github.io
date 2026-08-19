@@ -1360,8 +1360,9 @@ var m = getCurrentMember();
 if (m && m.isAdmin) { showPage('admin'); }
 else if (m) { showPage('member'); }
 else { showPage('index'); }
-// 延迟从云端同步最新数据（不阻塞首次渲染）
-setTimeout(loadFromCloud, 1000);
+// 云端数据手动同步（自动加载暂时关闭，避免乱码问题）
+// 所有写入操作仍会自动推送到云端
+// setTimeout(loadFromCloud, 1000);
 </script>
 </body>
 </html>
