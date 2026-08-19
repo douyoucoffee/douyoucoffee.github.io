@@ -229,7 +229,7 @@
         <div class="feature-name">积分记录</div>
         <div class="feature-desc">查看明细</div>
       </div>
-      <div class="feature-item" onclick="goFeature('admin')">
+      <div class="feature-item" id="idx-admin-entry" onclick="goFeature('admin')" style="display:none;">
         <div class="feature-icon">🔧</div>
         <div class="feature-name">管理入口</div>
         <div class="feature-desc">留个位置</div>
@@ -273,7 +273,7 @@
         <div class="list-content"><div class="list-title">分享积分</div><div class="list-desc">邀请好友 · 赠送积分</div></div>
         <div class="list-extra">›</div>
       </div>
-      <div class="list-item" onclick="goFeature('admin')">
+      <div class="list-item" id="m-admin-entry" onclick="goFeature('admin')" style="display:none;">
         <div class="list-icon" style="background:#F3E5F5;">🔧</div>
         <div class="list-content"><div class="list-title">管理入口</div><div class="list-desc">会员管理 · 豆子管理 · 设置</div></div>
         <div class="list-extra">›</div>
@@ -695,6 +695,9 @@ function loadIndexPage() {
     document.getElementById('idx-used').textContent = '-' + (monthGain - (m.pointsBalance||0));
     document.getElementById('index-auth').className = 'hidden';
     document.getElementById('index-points-card').style.display = 'block';
+    // 管理入口仅管理员可见
+    var idxAdmin = document.getElementById('idx-admin-entry');
+    if (idxAdmin) idxAdmin.style.display = m.isAdmin ? 'flex' : 'none';
   } else {
     document.getElementById('index-status').textContent = '畅饮权益：未激活 · 带100g豆即可激活';
     document.getElementById('idx-points-val').innerHTML = '0<span>豆 ≈ ¥0.00</span>';
@@ -702,6 +705,9 @@ function loadIndexPage() {
     document.getElementById('idx-shared').textContent = '0';
     document.getElementById('idx-used').textContent = '-0';
     document.getElementById('index-auth').className = '';
+    // 未登录时隐藏管理入口
+    var idxAdmin2 = document.getElementById('idx-admin-entry');
+    if (idxAdmin2) idxAdmin2.style.display = 'none';
   }
   // 实验期横幅
   document.getElementById('exp-banner').className = isExp() ? 'banner banner-pink' : 'hidden';
@@ -824,6 +830,9 @@ function loadMemberPage() {
   document.getElementById('m-contrib').textContent = contribs.length;
   var coupons = db.pointCoupons.filter(function(c){ return c.ownerId===m.id && !c.used && new Date(c.expiresAt)>new Date(); });
   document.getElementById('m-coupons').textContent = coupons.length;
+  // 管理入口仅管理员可见
+  var adminEntry = document.getElementById('m-admin-entry');
+  if (adminEntry) adminEntry.style.display = m.isAdmin ? 'flex' : 'none';
   if (isExp()) {
     document.getElementById('m-status').textContent = '🎉 实验期 · 免费畅饮中';
     document.getElementById('m-status').className = 'banner banner-pink';
