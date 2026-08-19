@@ -655,8 +655,9 @@ function loadDB() {
   } catch(e) { db = defaultDB(); }
   saveDB();
 }
+function saveDBLocal() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 function saveDB() {
-  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  saveDBLocal();
   debouncedCloudSave();
 }
 
@@ -669,9 +670,29 @@ var GH_TOKEN = _p1 + _p2 + _p3;
 var GH_API = 'https://api.github.com/repos/' + GH_REPO + '/contents/data.json';
 var _cloudSaveTimer = null;
 
+// UTF-8 安全的 base64 编解码
+function b64Encode(str) {
+  if (window.TextEncoder) {
+    var bytes = new TextEncoder().encode(str);
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64Decode(b64) {
+  if (window.TextDecoder) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+  return decodeURIComponent(escape(atob(b64)));
+}
+
 function debouncedCloudSave() {
   clearTimeout(_cloudSaveTimer);
-  _cloudSaveTimer = setTimeout(pushToCloud, 2000);
+  _cloudSaveTimer = setTimeout(pushToCloud, 3000);
 }
 
 function loadFromCloud() {
@@ -681,26 +702,40 @@ function loadFromCloud() {
       return r.json();
     })
     .then(function(data) {
-      var json = JSON.parse(atob(data.content));
-      db = json;
-      localStorage.setItem(DB_KEY, JSON.stringify(db));
-      // 刷新当前页面
-      var pages = ['index','member','bean','points','share','rules','admin-login','admin'];
-      for (var i = 0; i < pages.length; i++) {
-        var el = document.getElementById('page-' + pages[i]);
-        if (el && el.className.indexOf('hidden') === -1) {
-          if (pages[i] === 'index') loadIndexPage();
-          else if (pages[i] === 'member') loadMemberPage();
-          else if (pages[i] === 'admin') loadAdminPage();
-          break;
+      var jsonStr = b64Decode(data.content);
+      var cloudDb = JSON.parse(jsonStr);
+      // 验证数据结构
+      if (!cloudDb.settings || !cloudDb.shopBeans) throw new Error('invalid cloud data');
+      // 合并云端数据到本地（不直接替换，保留本地 nextId 等）
+      var keys = ['members','contributions','points','shareCodes','pointCoupons','shopBeans','weeklyBean'];
+      for (var i = 0; i < keys.length; i++) {
+        if (cloudDb[keys[i]] !== undefined) db[keys[i]] = cloudDb[keys[i]];
+      }
+      if (cloudDb.nextId) {
+        for (var k in cloudDb.nextId) {
+          if (cloudDb.nextId[k] > (db.nextId[k]||0)) db.nextId[k] = cloudDb.nextId[k];
         }
       }
+      if (cloudDb.settings) {
+        for (var k in cloudDb.settings) { db.settings[k] = cloudDb.settings[k]; }
+      }
+      saveDBLocal();
+      // 刷新当前页面显示
+      var currentPage = null;
+      var allPages = ['index','member','bean','points','share','rules','admin-login','admin'];
+      for (var i = 0; i < allPages.length; i++) {
+        var el = document.getElementById('page-' + allPages[i]);
+        if (el && el.className.indexOf('hidden') === -1) { currentPage = allPages[i]; break; }
+      }
+      if (currentPage === 'index') loadIndexPage();
+      else if (currentPage === 'member') loadMemberPage();
+      else if (currentPage === 'admin') loadAdminPage();
     })
-    .catch(function(e) { console.log('Cloud load failed, using local data'); });
+    .catch(function(e) { console.log('Cloud sync skipped:', e.message); });
 }
 
 function pushToCloud() {
-  var content = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+  var content = b64Encode(JSON.stringify(db));
   fetch(GH_API, {
     method: 'GET',
     headers: { 'Authorization': 'token ' + GH_TOKEN }
@@ -714,9 +749,9 @@ function pushToCloud() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: 'sync data',
+        message: 'sync data ' + new Date().toISOString(),
         content: content,
-        sha: data.sha || ''
+        sha: (data && data.sha) ? data.sha : ''
       })
     });
   })
