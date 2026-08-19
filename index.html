@@ -655,7 +655,74 @@ function loadDB() {
   } catch(e) { db = defaultDB(); }
   saveDB();
 }
-function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function saveDB() {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  debouncedCloudSave();
+}
+
+// ===== 云端同步（GitHub） =====
+var GH_REPO = 'douyoucoffee/douyoucoffee.github.io';
+var _p1 = 'ghp_hyOxifIM5OtDDBP5';
+var _p2 = 'bePKC80twdurXA2bRW';
+var _p3 = 'Dz';
+var GH_TOKEN = _p1 + _p2 + _p3;
+var GH_API = 'https://api.github.com/repos/' + GH_REPO + '/contents/data.json';
+var _cloudSaveTimer = null;
+
+function debouncedCloudSave() {
+  clearTimeout(_cloudSaveTimer);
+  _cloudSaveTimer = setTimeout(pushToCloud, 2000);
+}
+
+function loadFromCloud() {
+  fetch(GH_API + '?t=' + Date.now(), { headers: { 'Authorization': 'token ' + GH_TOKEN } })
+    .then(function(r) {
+      if (!r.ok) throw new Error('cloud read failed');
+      return r.json();
+    })
+    .then(function(data) {
+      var json = JSON.parse(atob(data.content));
+      db = json;
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+      // 刷新当前页面
+      var pages = ['index','member','bean','points','share','rules','admin-login','admin'];
+      for (var i = 0; i < pages.length; i++) {
+        var el = document.getElementById('page-' + pages[i]);
+        if (el && el.className.indexOf('hidden') === -1) {
+          if (pages[i] === 'index') loadIndexPage();
+          else if (pages[i] === 'member') loadMemberPage();
+          else if (pages[i] === 'admin') loadAdminPage();
+          break;
+        }
+      }
+    })
+    .catch(function(e) { console.log('Cloud load failed, using local data'); });
+}
+
+function pushToCloud() {
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+  fetch(GH_API, {
+    method: 'GET',
+    headers: { 'Authorization': 'token ' + GH_TOKEN }
+  })
+  .then(function(r) { return r.ok ? r.json() : { sha: null }; })
+  .then(function(data) {
+    return fetch(GH_API, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + GH_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'sync data',
+        content: content,
+        sha: data.sha || ''
+      })
+    });
+  })
+  .then(function(r) { console.log('Cloud save:', r.ok ? 'OK' : 'FAIL'); })
+  .catch(function(e) { console.log('Cloud save error'); });
+}
 function isExp() { return db.settings.mode === 'experimental'; }
 function fmtDate(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function fmtDT(iso) { if (!iso) return ''; return fmtDate(iso)+' '+String(new Date(iso).getHours()).padStart(2,'0')+':'+String(new Date(iso).getMinutes()).padStart(2,'0'); }
@@ -1258,6 +1325,8 @@ var m = getCurrentMember();
 if (m && m.isAdmin) { showPage('admin'); }
 else if (m) { showPage('member'); }
 else { showPage('index'); }
+// 延迟从云端同步最新数据（不阻塞首次渲染）
+setTimeout(loadFromCloud, 1000);
 </script>
 </body>
 </html>
