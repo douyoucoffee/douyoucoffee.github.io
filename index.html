@@ -331,6 +331,7 @@
     .wheel-pointer:active { transform:translate(-50%,-50%) scale(.95); }
     .wheel-pointer.spinning { animation:none; pointer-events:none; }
     .wheel-result { margin-top:20px; }
+    .combo-list-item { background:#f5f0eb; border-radius:20px; padding:6px 14px; font-size:13px; color:var(--text); }
 
     /* 命运抉择弹窗 */
     .fate-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; }
@@ -936,6 +937,7 @@
       <div class="wheel-pointer" id="wheel-pointer" onclick="spinWheel()">GO</div>
     </div>
     <div class="wheel-result" id="wheel-result"></div>
+    <div id="wheel-combo-list" style="margin-top:16px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;"></div>
   </div>
 </div>
 
@@ -2514,10 +2516,29 @@ function initWheel() {
   setTimeout(function() {
     var canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
+    // 强制 reflow，确保 canvas 布局完成
+    void canvas.offsetWidth;
     var ctx = canvas.getContext('2d');
     _wheelCombos = getWheelCombos();
     drawWheel(ctx, canvas.width, _wheelCombos, _wheelAngle);
-  }, 100);
+    // 更新文字列表
+    renderWheelComboList();
+  }, 300);
+}
+
+function renderWheelComboList() {
+  var listEl = document.getElementById('wheel-combo-list');
+  if (!listEl) return;
+  if (_wheelCombos.length === 0) {
+    listEl.innerHTML = '<div style="color:#999;font-size:13px;padding:12px;">暂无可制作饮品，请联系吧台补充豆子</div>';
+    return;
+  }
+  var html = '';
+  _wheelCombos.forEach(function(c) {
+    var emoji = _methodEmoji[c.method] || '☕';
+    html += '<div class="combo-list-item">' + emoji + ' ' + c.beanName + ' · ' + c.methodLabel + '</div>';
+  });
+  listEl.innerHTML = html;
 }
 
 function drawWheel(ctx, size, combos, angle) {
