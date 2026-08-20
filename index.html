@@ -326,6 +326,11 @@
         <div class="feature-name">管理入口</div>
         <div class="feature-desc">运营管理</div>
       </div>
+      <div class="feature-item" onclick="showPage('profile')">
+        <div class="feature-icon">👤</div>
+        <div class="feature-name">个人信息</div>
+        <div class="feature-desc">修改资料</div>
+      </div>
     </div>
     <div class="card text-center" style="margin-top:16px;">
       <button class="btn btn-sm btn-outline" onclick="doLogout()" style="border-color:#ddd;color:var(--text-light);">退出登录</button>
@@ -444,6 +449,35 @@
       <a class="tab-item" onclick="showPage('bean')"><span class="tab-icon">☕</span><span>带豆</span></a>
       <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
       <a class="tab-item active"><span class="tab-icon">🎁</span><span>分享</span></a>
+    </div>
+  </div>
+
+  <!-- ===== 个人信息 ===== -->
+  <div id="page-profile" class="hidden">
+    <div class="header">
+      <a class="header-back" onclick="showPage('member')">‹</a>
+      <div class="header-title">👤 个人信息</div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="form-group">
+        <label class="form-label">昵称</label>
+        <input type="text" class="form-input" id="profile-nickname" placeholder="请输入昵称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">手机号</label>
+        <input type="tel" class="form-input" id="profile-phone" placeholder="请输入手机号" maxlength="11">
+      </div>
+      <div style="margin-top:8px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#666;">
+        <div>会员编号：<span id="profile-id" style="color:#333;font-weight:500;"></span></div>
+        <div style="margin-top:4px;">注册时间：<span id="profile-reg" style="color:#333;"></span></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:20px;width:100%;" onclick="saveProfile()">保存修改</button>
+    </div>
+    <div class="tab-bar">
+      <a class="tab-item" onclick="showPage('member')"><span class="tab-icon">🏠</span><span>主页</span></a>
+      <a class="tab-item" onclick="showPage('bean')"><span class="tab-icon"></span><span>带豆</span></a>
+      <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
+      <a class="tab-item active"><span class="tab-icon"></span><span>我的</span></a>
     </div>
   </div>
 
@@ -772,7 +806,7 @@ function loadFromCloud() {
       saveDBLocal();
       // 刷新当前页面显示
       var currentPage = null;
-      var allPages = ['index','member','bean','points','share','rules','admin-login','admin'];
+      var allPages = ['index','member','bean','points','share','rules','admin-login','admin','profile'];
       for (var i = 0; i < allPages.length; i++) {
         var el = document.getElementById('page-' + allPages[i]);
         if (el && el.className.indexOf('hidden') === -1) { currentPage = allPages[i]; break; }
@@ -822,7 +856,7 @@ function getCurrentMember() {
 }
 
 // ===== 页面路由 =====
-var pages = ['index','member','bean','points','share','rules','admin-login','admin'];
+var pages = ['index','member','bean','points','share','rules','admin-login','admin','profile'];
 function showPage(name) {
   pages.forEach(function(p) {
     var el = document.getElementById('page-'+p);
@@ -834,6 +868,7 @@ function showPage(name) {
   if (name === 'points') loadPointsPage();
   if (name === 'share') loadSharePage();
   if (name === 'admin') loadAdminPage();
+  if (name === 'profile') loadProfilePage();
 }
 
 // ===== 首页 =====
@@ -995,6 +1030,34 @@ function exitAdmin() {
 
 function doLogout() {
   if (confirm('确定退出登录？')) { localStorage.removeItem('doyou_current_member'); currentMember = null; showPage('index'); }
+}
+
+// ===== 个人信息页 =====
+function loadProfilePage() {
+  var m = getCurrentMember();
+  if (!m) { showPage('index'); return; }
+  document.getElementById('profile-nickname').value = m.nickname || '';
+  document.getElementById('profile-phone').value = m.phone || '';
+  document.getElementById('profile-id').textContent = '#' + m.id;
+  document.getElementById('profile-reg').textContent = fmtDate(m.registeredAt);
+}
+
+function saveProfile() {
+  var m = getCurrentMember();
+  if (!m) { showPage('index'); return; }
+  var nick = document.getElementById('profile-nickname').value.trim();
+  var phone = document.getElementById('profile-phone').value.trim();
+  if (!nick) { toast('⚠️ 昵称不能为空'); return; }
+  if (!/^1\d{10}$/.test(phone)) { toast('⚠️ 请输入正确的11位手机号'); return; }
+  // 检查手机号是否与其他会员冲突
+  var dup = db.members.find(function(x) { return x.phone === phone && x.id !== m.id; });
+  if (dup) { toast('⚠️ 该手机号已被其他会员使用'); return; }
+  m.nickname = nick;
+  m.phone = phone;
+  saveDBLocal();
+  pushToCloud();
+  toast('✅ 信息已更新');
+  setTimeout(function() { showPage('member'); }, 800);
 }
 
 // ===== 会员主页 =====
