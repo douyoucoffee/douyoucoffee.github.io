@@ -1089,10 +1089,25 @@ function loadFromCloud() {
       var cloudDb = JSON.parse(jsonStr);
       // 验证数据结构
       if (!cloudDb.settings || !cloudDb.shopBeans) throw new Error('invalid cloud data');
-      // 合并云端数据到本地（不直接替换，保留本地 nextId 等）
-      var keys = ['members','contributions','points','shareCodes','pointCoupons','shopBeans','weeklyBean','orders'];
-      for (var i = 0; i < keys.length; i++) {
-        if (cloudDb[keys[i]] !== undefined) db[keys[i]] = cloudDb[keys[i]];
+      // 合并云端数据到本地（智能合并，防止本地新注册数据被覆盖）
+      // members 按手机号合并：云端为主，保留本地有但云端没有的（新注册未同步）
+      if (cloudDb.members && Array.isArray(cloudDb.members)) {
+        var cloudPhones = {};
+        cloudDb.members.forEach(function(m) { cloudPhones[m.phone] = m; });
+        var localPhones = {};
+        (db.members || []).forEach(function(m) { localPhones[m.phone] = m; });
+        // 以云端为基础
+        var merged = cloudDb.members.slice();
+        // 加入本地有但云端没有的会员
+        (db.members || []).forEach(function(m) {
+          if (!cloudPhones[m.phone]) { merged.push(m); }
+        });
+        db.members = merged;
+      }
+      // 其他数据直接覆盖
+      var otherKeys = ['contributions','points','shareCodes','pointCoupons','shopBeans','weeklyBean','orders'];
+      for (var i = 0; i < otherKeys.length; i++) {
+        if (cloudDb[otherKeys[i]] !== undefined) db[otherKeys[i]] = cloudDb[otherKeys[i]];
       }
       if (cloudDb.nextId) {
         for (var k in cloudDb.nextId) {
