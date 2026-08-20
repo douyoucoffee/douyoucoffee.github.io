@@ -489,9 +489,10 @@
   <!-- ===== 管理后台 ===== -->
   <div id="page-admin" class="hidden">
     <div class="header">
-      <a class="header-back" onclick="showPage('index')">‹</a>
+      <a class="header-back" onclick="exitAdmin()">‹</a>
       <div class="header-title">🔧 管理后台</div>
       <div class="header-sub" id="admin-mode"></div>
+      <a onclick="exitAdmin()" style="position:absolute;right:16px;top:20px;font-size:13px;color:rgba(255,255,255,.85);cursor:pointer;z-index:10;">退出管理</a>
     </div>
     <div class="admin-nav">
       <div class="admin-nav-item active" id="nav-dash" onclick="switchAdminTab('dash')">📊 概览</div>
@@ -954,6 +955,11 @@ function doLogin() {
   currentMember = m;
   toast('登录成功！');
   setTimeout(function(){ showPage('member'); }, 500);
+}
+
+function exitAdmin() {
+  var m = getCurrentMember();
+  if (m) { showPage('member'); } else { showPage('index'); }
 }
 
 function doLogout() {
