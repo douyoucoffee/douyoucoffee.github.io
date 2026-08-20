@@ -185,7 +185,10 @@
       <div class="auth-card" id="auth-reg">
         <div class="form-group">
           <label class="form-label">昵称</label>
-          <input class="form-input" id="reg-nickname" placeholder="给自己取个豆友名吧" maxlength="20">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input class="form-input" id="reg-nickname" placeholder="给自己取个豆友名吧" maxlength="20" style="flex:1;">
+            <button type="button" class="btn btn-sm" onclick="getWechatName()" style="background:var(--success);white-space:nowrap;flex-shrink:0;">微信名</button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">手机号</label>
@@ -893,6 +896,19 @@ function goFeature(feat) {
   var m = getCurrentMember();
   if (!m) { toast('请先登录'); switchAuthTab('login'); return; }
   if (feat === 'admin') showPage('admin-login');
+}
+
+// ===== 获取微信昵称 =====
+function getWechatName() {
+  var ua = navigator.userAgent.toLowerCase();
+  var isWechat = ua.indexOf('micromessenger') !== -1;
+  var name = prompt(
+    isWechat ? '请输入你的微信昵称：' : '输入你想用的昵称：',
+    ''
+  );
+  if (name && name.trim()) {
+    document.getElementById('reg-nickname').value = name.trim();
+  }
 }
 
 // ===== 注册 =====
