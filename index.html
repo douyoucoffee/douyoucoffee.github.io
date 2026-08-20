@@ -171,6 +171,151 @@
     .bean-detail-row:last-child { border-bottom:none; }
     .bean-detail-label { width:80px; flex-shrink:0; color:var(--text-light); }
     .bean-detail-val { flex:1; font-weight:500; }
+
+    /* ===== 点单相关样式 ===== */
+    .bean-card-order-btn {
+      margin-top:10px; padding:7px 0;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      color:#fff; border-radius:8px; font-size:12px; font-weight:600;
+      text-align:center; cursor:pointer; transition:transform .15s;
+    }
+    .bean-card-order-btn:active { transform:scale(.96); }
+
+    /* 规格选择弹窗（底部抽屉） */
+    .spec-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.45); z-index:9998; }
+    .spec-modal.show { display:flex; align-items:flex-end; justify-content:center; }
+    .spec-modal-content {
+      background:#fff; border-radius:20px 20px 0 0;
+      width:100%; max-width:480px; padding:20px 20px 36px;
+      animation:slideUp .3s ease; max-height:80vh; overflow-y:auto;
+    }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+    .spec-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+    .spec-header-img { width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,#F5EDE4,#E8DDD2); display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden; flex-shrink:0; }
+    .spec-header-img img { width:100%; height:100%; object-fit:cover; }
+    .spec-header-info { flex:1; }
+    .spec-bean-name { font-size:16px; font-weight:700; color:var(--text); }
+    .spec-bean-origin { font-size:12px; color:var(--text-light); margin-top:2px; }
+    .spec-close { width:30px; height:30px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--text-light); cursor:pointer; flex-shrink:0; }
+
+    .spec-section-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:10px; }
+    .spec-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+    .spec-type-item {
+      border:2px solid var(--border); border-radius:12px;
+      padding:12px 6px; text-align:center; cursor:pointer; transition:all .2s;
+    }
+    .spec-type-item:active { transform:scale(.96); }
+    .spec-type-item.active { border-color:var(--primary); background:rgba(160,114,74,.08); }
+    .spec-type-icon { font-size:22px; margin-bottom:4px; }
+    .spec-type-name { font-size:13px; font-weight:600; color:var(--text); }
+    .spec-type-weight { font-size:11px; color:var(--text-light); margin-top:2px; }
+
+    .spec-sub-section { margin-bottom:18px; }
+    .spec-sub-btns { display:flex; gap:10px; }
+    .spec-sub-btn {
+      flex:1; padding:10px; border:2px solid var(--border); border-radius:10px;
+      text-align:center; font-size:14px; font-weight:500; cursor:pointer;
+      transition:all .2s; background:#fff; color:var(--text);
+    }
+    .spec-sub-btn:active { transform:scale(.96); }
+    .spec-sub-btn.active { border-color:var(--primary); background:rgba(160,114,74,.08); color:var(--primary); }
+
+    .spec-quantity-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .spec-qty-control { display:flex; align-items:center; gap:12px; }
+    .spec-qty-btn {
+      width:32px; height:32px; border-radius:50%; border:2px solid var(--border);
+      background:#fff; font-size:18px; font-weight:600; display:flex;
+      align-items:center; justify-content:center; cursor:pointer; color:var(--text);
+    }
+    .spec-qty-btn:active { background:var(--bg); }
+    .spec-qty-val { font-size:18px; font-weight:700; min-width:24px; text-align:center; }
+
+    .spec-add-btn {
+      width:100%; padding:14px; border:none; border-radius:var(--radius);
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      color:#fff; font-size:15px; font-weight:600; cursor:pointer;
+      transition:transform .15s;
+    }
+    .spec-add-btn:active { transform:scale(.98); }
+
+    /* 浮动购物车栏 */
+    .cart-bar {
+      position:fixed; bottom:64px; left:50%; transform:translateX(-50%);
+      width:calc(100% - 32px); max-width:448px;
+      background:var(--header-bg); color:#fff; border-radius:16px;
+      padding:10px 14px; display:none; align-items:center; gap:10px;
+      box-shadow:0 4px 20px rgba(0,0,0,.25); z-index:90;
+    }
+    .cart-bar.show { display:flex; }
+    .cart-bar-icon { font-size:26px; position:relative; flex-shrink:0; }
+    .cart-bar-badge {
+      position:absolute; top:-6px; right:-8px;
+      background:var(--danger); color:#fff; font-size:10px; font-weight:700;
+      min-width:18px; height:18px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .cart-bar-info { flex:1; min-width:0; }
+    .cart-bar-weight { font-size:14px; font-weight:600; }
+    .cart-bar-hint { font-size:11px; opacity:.75; }
+    .cart-bar-btn {
+      padding:9px 18px; border-radius:12px; border:none;
+      background:var(--primary-light); color:#fff;
+      font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
+    }
+    .cart-bar-btn.disabled { opacity:.45; cursor:not-allowed; }
+
+    /* 购物车页面 */
+    .cart-empty { text-align:center; padding:48px 20px; color:var(--text-light); }
+    .cart-empty-icon { font-size:48px; margin-bottom:12px; }
+    .cart-item {
+      display:flex; align-items:center; padding:14px 0;
+      border-bottom:1px solid var(--border);
+    }
+    .cart-item:last-child { border-bottom:none; }
+    .cart-item-icon { width:40px; height:40px; border-radius:10px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:20px; margin-right:12px; flex-shrink:0; }
+    .cart-item-info { flex:1; min-width:0; }
+    .cart-item-name { font-size:14px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cart-item-desc { font-size:12px; color:var(--text-light); margin-top:2px; }
+    .cart-item-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .cart-item-weight { font-size:13px; font-weight:600; color:var(--primary); }
+    .cart-item-qty-btn {
+      width:26px; height:26px; border-radius:50%; border:1px solid var(--border);
+      background:#fff; font-size:14px; cursor:pointer; display:flex;
+      align-items:center; justify-content:center; color:var(--text);
+    }
+    .cart-item-qty-val { font-size:14px; font-weight:600; min-width:20px; text-align:center; }
+    .cart-item-remove { font-size:11px; color:var(--danger); cursor:pointer; margin-left:4px; white-space:nowrap; }
+    .cart-summary {
+      background:var(--bg); border-radius:12px; padding:16px; margin-top:16px;
+    }
+    .cart-summary-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .cart-summary-row:last-child { margin-bottom:0; }
+    .cart-summary-label { font-size:13px; color:var(--text-light); }
+    .cart-summary-val { font-size:14px; font-weight:600; color:var(--text); }
+    .cart-summary-total { font-size:18px; font-weight:700; color:var(--primary); }
+    .cart-progress-bar { height:8px; background:var(--border); border-radius:4px; margin:12px 0; overflow:hidden; }
+    .cart-progress-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--primary-light)); border-radius:4px; transition:width .3s; }
+    .cart-submit-btn {
+      width:100%; padding:14px; border:none; border-radius:var(--radius);
+      font-size:16px; font-weight:600; cursor:pointer; margin-top:16px;
+      transition:transform .15s;
+    }
+    .cart-submit-btn:active { transform:scale(.98); }
+    .cart-submit-btn.enabled { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; }
+    .cart-submit-btn.disabled { background:#ddd; color:#999; cursor:not-allowed; }
+
+    /* 订单成功弹窗 */
+    .order-success-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
+    .order-success-modal.show { display:flex; }
+    .order-success-content {
+      background:#fff; border-radius:20px; padding:32px 24px; text-align:center;
+      max-width:320px; width:90%; animation:slideUp .3s ease;
+    }
+    .order-success-icon { font-size:56px; margin-bottom:12px; }
+    .order-success-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:8px; }
+    .order-success-desc { font-size:13px; color:var(--text-light); line-height:1.6; margin-bottom:20px; }
+    .order-success-btn { padding:12px 32px; border:none; border-radius:var(--radius); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -305,7 +450,7 @@
     <div class="section-title"><span class="section-title-icon">🫘</span>在店豆子<span class="section-subtitle">— 今天喝哪支？</span></div>
     <div class="bean-grid" id="m-shop-beans-grid"></div>
     <!-- 功能入口 -->
-    <div class="feature-grid" style="margin-top:16px;">
+    <div class="feature-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr);">
       <div class="feature-item" onclick="showPage('bean')">
         <div class="feature-icon">☕</div>
         <div class="feature-name">带豆记录</div>
@@ -706,6 +851,46 @@
   <div class="bean-modal-inner" id="bean-modal-inner"></div>
 </div>
 
+<!-- ===== 规格选择弹窗 ===== -->
+<div class="spec-modal" id="spec-modal" onclick="if(event.target===this)closeSpecModal()">
+  <div class="spec-modal-content" id="spec-modal-content"></div>
+</div>
+
+<!-- ===== 浮动购物车栏 ===== -->
+<div class="cart-bar" id="cart-bar">
+  <div class="cart-bar-icon">🛒<span class="cart-bar-badge" id="cart-bar-count">0</span></div>
+  <div class="cart-bar-info">
+    <div class="cart-bar-weight" id="cart-bar-weight">0g / 20g</div>
+    <div class="cart-bar-hint" id="cart-bar-hint">还差20g可下单</div>
+  </div>
+  <button class="cart-bar-btn disabled" id="cart-bar-btn" onclick="showPage('cart')">去下单</button>
+</div>
+
+<!-- ===== 点单/购物车页面 ===== -->
+<div id="page-cart" class="hidden">
+  <div class="header">
+    <a class="header-back" onclick="showPage('member')">‹</a>
+    <div class="header-title">🛒 我的购物车</div>
+  </div>
+  <div class="card" id="cart-content"></div>
+  <div class="tab-bar">
+    <a class="tab-item" onclick="showPage('member')"><span class="tab-icon">🏠</span><span>主页</span></a>
+    <a class="tab-item" onclick="showPage('bean')"><span class="tab-icon"></span><span>带豆</span></a>
+    <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
+    <a class="tab-item active"><span class="tab-icon">🛒</span><span>购物车</span></a>
+  </div>
+</div>
+
+<!-- ===== 订单成功弹窗 ===== -->
+<div class="order-success-modal" id="order-success-modal">
+  <div class="order-success-content">
+    <div class="order-success-icon">☕</div>
+    <div class="order-success-title">下单成功！</div>
+    <div class="order-success-desc" id="order-success-desc">您的咖啡订单已提交，请到吧台取咖啡~</div>
+    <button class="order-success-btn" onclick="closeOrderSuccess()">好的</button>
+  </div>
+</div>
+
 <script>
 // ===== 数据层 =====
 var DB_KEY = 'doyou_coffee_db';
@@ -856,7 +1041,7 @@ function getCurrentMember() {
 }
 
 // ===== 页面路由 =====
-var pages = ['index','member','bean','points','share','rules','admin-login','admin','profile'];
+var pages = ['index','member','bean','points','share','rules','admin-login','admin','profile','cart'];
 function showPage(name) {
   pages.forEach(function(p) {
     var el = document.getElementById('page-'+p);
@@ -869,6 +1054,8 @@ function showPage(name) {
   if (name === 'share') loadSharePage();
   if (name === 'admin') loadAdminPage();
   if (name === 'profile') loadProfilePage();
+  if (name === 'cart') loadCartPage();
+  updateCartBar();
 }
 
 // ===== 首页 =====
@@ -1115,7 +1302,9 @@ function renderMemberShopBeans() {
       html += '<span class="bean-tag bean-tag-brown">' + b.roast + '</span>';
       html += '<span class="bean-tag bean-tag-green">' + b.altitude + '</span>';
       if (b.variety) html += '<span class="bean-tag bean-tag-blue">' + b.variety + '</span>';
-      html += '</div></div>';
+      html += '</div>';
+      html += '<div class="bean-card-order-btn" onclick="event.stopPropagation();openSpecModal('+i+')">🛒 选规格点单</div>';
+      html += '</div>';
     });
   }
   document.getElementById('m-shop-beans-grid').innerHTML = html;
@@ -1141,67 +1330,6 @@ function renderMemberWeeklyBean(wb) {
 }
 
 // ===== 豆子详情弹窗（淘宝风格） =====
-function openBeanDetail(idx) {
-  var beans = db.shopBeans || [];
-  var b = beans[idx];
-  if (!b) return;
-  var html = '<div class="bean-modal-photo">';
-  if (b.photo) {
-    html += '<img src="'+b.photo+'" alt="'+b.name+'">';
-  } else {
-    var emoji = b.roast && b.roast.indexOf('深') >= 0 ? '🟤' : '🟠';
-    html += emoji;
-  }
-  html += '<div class="bean-modal-close" onclick="closeBeanDetail()">✕</div></div>';
-  // 标题区
-  html += '<div class="bean-modal-price">';
-  html += '<div class="bm-name">' + b.name + '</div>';
-  html += '<div class="bm-sub">' + (b.origin||'') + (b.altitude ? ' · '+b.altitude : '') + '</div>';
-  html += '<div class="bean-modal-tags">';
-  if (b.roast) html += '<span class="bm-tag bean-tag-brown">'+b.roast+'</span>';
-  if (b.altitude) html += '<span class="bm-tag bean-tag-green">'+b.altitude+'</span>';
-  if (b.variety) html += '<span class="bm-tag bean-tag-blue">'+b.variety+'</span>';
-  html += '</div></div>';
-  // 基础参数
-  html += '<div class="bean-modal-section">';
-  html += '<div class="bms-title">豆子参数</div>';
-  html += '<div class="bm-info-grid">';
-  html += '<div class="bm-info-item"><div class="bm-info-label">产地</div><div class="bm-info-val">'+(b.origin||'—')+'</div></div>';
-  html += '<div class="bm-info-item"><div class="bm-info-label">海拔</div><div class="bm-info-val">'+(b.altitude||'—')+'</div></div>';
-  html += '<div class="bm-info-item"><div class="bm-info-label">豆种</div><div class="bm-info-val">'+(b.variety||'—')+'</div></div>';
-  html += '<div class="bm-info-item"><div class="bm-info-label">烘焙度</div><div class="bm-info-val">'+(b.roast||'—')+'</div></div>';
-  html += '<div class="bm-info-item"><div class="bm-info-label">烘焙方式</div><div class="bm-info-val">'+(b.roastMethod||'—')+'</div></div>';
-  html += '<div class="bm-info-item"><div class="bm-info-label">烘焙日期</div><div class="bm-info-val">'+(b.roastDate?fmtDate(b.roastDate):'—')+'</div></div>';
-  html += '<div class="bm-info-item bm-info-full"><div class="bm-info-label">赏味期限</div><div class="bm-info-val">'+(b.shelfDate?fmtDate(b.shelfDate):'—')+'</div></div>';
-  html += '</div>';
-  // 风味
-  if (b.flavor) {
-    var flavors = typeof b.flavor === 'string' ? b.flavor.split(/[、,，]/) : (Array.isArray(b.flavor) ? b.flavor : []);
-    if (flavors.length > 0 && flavors[0].trim()) {
-      html += '<div class="bms-title" style="margin-top:14px;">风味描述</div>';
-      html += '<div class="bm-flavor-list">';
-      flavors.forEach(function(f){ f=f.trim(); if(f) html += '<span class="bm-flavor-item">'+f+'</span>'; });
-      html += '</div>';
-    }
-  }
-  // 主理人推荐
-  if (b.review) {
-    html += '<div class="bm-review">';
-    html += '<div class="bm-review-title">☕ 主理人推荐</div>';
-    html += '<div class="bm-review-text">' + b.review + '</div>';
-    html += '</div>';
-  }
-  html += '</div>';
-  document.getElementById('bean-modal-inner').innerHTML = html;
-  document.getElementById('bean-modal').classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeBeanDetail() {
-  document.getElementById('bean-modal').classList.remove('show');
-  document.body.style.overflow = '';
-}
-
 // ===== 带豆记录 =====
 function loadBeanPage() {
   var m = getCurrentMember(); if (!m) { showPage('index'); return; }
@@ -1707,6 +1835,13 @@ function openBeanDetail(idx) {
     html += '<div class="bm-review-text">'+b.review+'</div>';
     html += '</div>';
   }
+  // 选规格点单按钮
+  var m = getCurrentMember();
+  if (m) {
+    html += '<div style="padding:16px 20px 24px;background:#fff;">';
+    html += '<button class="spec-add-btn" onclick="closeBeanDetail();openSpecModal('+idx+')">🛒 选规格点单</button>';
+    html += '</div>';
+  }
   document.getElementById('bean-modal-inner').innerHTML = html;
   document.getElementById('bean-modal').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -1746,6 +1881,268 @@ function resetAllData() {
   if (confirm('确定要重置所有数据吗？此操作不可逆！') && confirm('再次确认：真的要重置吗？')) {
     db = defaultDB(); saveDB(); toast('数据已重置'); loadAdminPage();
   }
+}
+
+// ===== 点单/购物车系统 =====
+var CART_KEY = 'doyou_cart';
+var _specState = { beanIdx: -1, type: '', subOption: '', qty: 1 };
+
+function getCart() {
+  try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch(e) { return []; }
+}
+function saveCart(cart) {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  updateCartBar();
+}
+function getCartWeight(cart) {
+  cart = cart || getCart();
+  var total = 0;
+  cart.forEach(function(item) { total += (item.weight || 0) * (item.qty || 1); });
+  return total;
+}
+function getCartCount(cart) {
+  cart = cart || getCart();
+  var count = 0;
+  cart.forEach(function(item) { count += (item.qty || 1); });
+  return count;
+}
+
+function updateCartBar() {
+  var bar = document.getElementById('cart-bar');
+  if (!bar) return;
+  var cart = getCart();
+  var count = getCartCount(cart);
+  var weight = getCartWeight(cart);
+  if (count === 0) {
+    bar.classList.remove('show');
+    return;
+  }
+  bar.classList.add('show');
+  document.getElementById('cart-bar-count').textContent = count;
+  document.getElementById('cart-bar-weight').textContent = weight + 'g / 20g';
+  var btn = document.getElementById('cart-bar-btn');
+  if (weight >= 20) {
+    document.getElementById('cart-bar-hint').textContent = '已满20g，可以下单';
+    btn.classList.remove('disabled');
+    btn.textContent = '去下单';
+  } else {
+    document.getElementById('cart-bar-hint').textContent = '还差' + (20 - weight) + 'g可下单';
+    btn.classList.add('disabled');
+    btn.textContent = '去下单';
+  }
+}
+
+function openSpecModal(beanIdx) {
+  var beans = db.shopBeans || [];
+  var b = beans[beanIdx];
+  if (!b) return;
+  _specState = { beanIdx: beanIdx, type: '', subOption: '', qty: 1 };
+  renderSpecModal(b);
+  document.getElementById('spec-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderSpecModal(b) {
+  var html = '<div class="spec-header">';
+  if (b.photo) {
+    html += '<div class="spec-header-img"><img src="'+b.photo+'"></div>';
+  } else {
+    var emoji = b.roast && b.roast.indexOf('深') >= 0 ? '🟤' : '🟠';
+    html += '<div class="spec-header-img">'+emoji+'</div>';
+  }
+  html += '<div class="spec-header-info"><div class="spec-bean-name">'+b.name+'</div>';
+  html += '<div class="spec-bean-origin">'+(b.origin||'')+'</div></div>';
+  html += '<div class="spec-close" onclick="closeSpecModal()">✕</div></div>';
+  // 选择规格类型
+  html += '<div class="spec-section-title">选择规格</div>';
+  html += '<div class="spec-type-grid">';
+  var types = [
+    { key:'ear', icon:'🍵', name:'挂耳', weight:10, unit:'1包' },
+    { key:'pourover', icon:'☕', name:'手冲', weight:15, unit:'15g' },
+    { key:'blend', icon:'🥤', name:'拼豆', weight:5, unit:'5g' }
+  ];
+  types.forEach(function(t) {
+    var cls = _specState.type === t.key ? ' active' : '';
+    html += '<div class="spec-type-item'+cls+'" onclick="selectSpecType(\''+t.key+'\')">';
+    html += '<div class="spec-type-icon">'+t.icon+'</div>';
+    html += '<div class="spec-type-name">'+t.name+'</div>';
+    html += '<div class="spec-type-weight">'+t.unit+'</div></div>';
+  });
+  html += '</div>';
+  // 子选项
+  if (_specState.type === 'pourover') {
+    html += '<div class="spec-sub-section"><div class="spec-section-title">温度</div>';
+    html += '<div class="spec-sub-btns">';
+    var hotCls = _specState.subOption === 'hot' ? ' active' : '';
+    var iceCls = _specState.subOption === 'ice' ? ' active' : '';
+    html += '<div class="spec-sub-btn'+hotCls+'" onclick="selectSubOption(\'hot\')">🔥 热的</div>';
+    html += '<div class="spec-sub-btn'+iceCls+'" onclick="selectSubOption(\'ice\')">🧊 冰的</div>';
+    html += '</div></div>';
+  } else if (_specState.type === 'blend') {
+    html += '<div class="spec-sub-section"><div class="spec-section-title">做法</div>';
+    html += '<div class="spec-sub-btns">';
+    var amCls = _specState.subOption === 'americano' ? ' active' : '';
+    var laCls = _specState.subOption === 'latte' ? ' active' : '';
+    html += '<div class="spec-sub-btn'+amCls+'" onclick="selectSubOption(\'americano\')">☕ 美式</div>';
+    html += '<div class="spec-sub-btn'+laCls+'" onclick="selectSubOption(\'latte\')">🥛 拿铁</div>';
+    html += '</div></div>';
+  }
+  // 数量
+  html += '<div class="spec-quantity-row"><div class="spec-section-title" style="margin-bottom:0">数量</div>';
+  html += '<div class="spec-qty-control">';
+  html += '<div class="spec-qty-btn" onclick="adjustQty(-1)">−</div>';
+  html += '<div class="spec-qty-val" id="spec-qty-val">'+_specState.qty+'</div>';
+  html += '<div class="spec-qty-btn" onclick="adjustQty(1)">+</div>';
+  html += '</div></div>';
+  // 加入购物车按钮
+  html += '<button class="spec-add-btn" onclick="addToCart()">加入购物车</button>';
+  document.getElementById('spec-modal-content').innerHTML = html;
+}
+
+function closeSpecModal() {
+  document.getElementById('spec-modal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function selectSpecType(type) {
+  _specState.type = type;
+  _specState.subOption = '';
+  var beans = db.shopBeans || [];
+  renderSpecModal(beans[_specState.beanIdx]);
+}
+
+function selectSubOption(opt) {
+  _specState.subOption = opt;
+  var beans = db.shopBeans || [];
+  renderSpecModal(beans[_specState.beanIdx]);
+}
+
+function adjustQty(delta) {
+  var newQty = _specState.qty + delta;
+  if (newQty < 1) newQty = 1;
+  if (newQty > 99) newQty = 99;
+  _specState.qty = newQty;
+  var beans = db.shopBeans || [];
+  renderSpecModal(beans[_specState.beanIdx]);
+}
+
+function addToCart() {
+  if (!_specState.type) { toast('⚠️ 请选择规格'); return; }
+  if (_specState.type === 'pourover' && !_specState.subOption) { toast('⚠️ 请选择温度'); return; }
+  if (_specState.type === 'blend' && !_specState.subOption) { toast('⚠️ 请选择做法'); return; }
+  var beans = db.shopBeans || [];
+  var b = beans[_specState.beanIdx];
+  if (!b) return;
+  var weightMap = { ear: 10, pourover: 15, blend: 5 };
+  var nameMap = { ear: '挂耳', pourover: '手冲', blend: '拼豆' };
+  var subMap = { hot: '热', ice: '冰', americano: '美式', latte: '拿铁' };
+  var item = {
+    beanIdx: _specState.beanIdx,
+    beanName: b.name,
+    type: _specState.type,
+    typeName: nameMap[_specState.type],
+    subOption: _specState.subOption,
+    subOptionName: subMap[_specState.subOption] || '',
+    weight: weightMap[_specState.type],
+    qty: _specState.qty
+  };
+  var cart = getCart();
+  cart.push(item);
+  saveCart(cart);
+  closeSpecModal();
+  toast('✅ 已加入购物车');
+}
+
+function loadCartPage() {
+  var cart = getCart();
+  var html = '';
+  if (cart.length === 0) {
+    html = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><div>购物车是空的<br>去挑选喜欢的豆子吧！</div></div>';
+    document.getElementById('cart-content').innerHTML = html;
+    return;
+  }
+  var typeNameMap = { ear: '挂耳', pourover: '手冲', blend: '拼豆' };
+  var subNameMap = { hot: '热', ice: '冰', americano: '美式', latte: '拿铁' };
+  cart.forEach(function(item, i) {
+    var desc = item.typeName;
+    if (item.subOptionName) desc += ' · ' + item.subOptionName;
+    html += '<div class="cart-item">';
+    html += '<div class="cart-item-icon">☕</div>';
+    html += '<div class="cart-item-info"><div class="cart-item-name">'+item.beanName+'</div>';
+    html += '<div class="cart-item-desc">'+desc+'</div></div>';
+    html += '<div class="cart-item-right">';
+    html += '<div class="cart-item-weight">'+(item.weight * item.qty)+'g</div>';
+    html += '<div class="cart-item-qty-btn" onclick="updateCartItemQty('+i+',-1)">−</div>';
+    html += '<div class="cart-item-qty-val">'+item.qty+'</div>';
+    html += '<div class="cart-item-qty-btn" onclick="updateCartItemQty('+i+',1)">+</div>';
+    html += '<div class="cart-item-remove" onclick="removeCartItem('+i+')">删除</div>';
+    html += '</div></div>';
+  });
+  var totalWeight = getCartWeight(cart);
+  var totalCount = getCartCount(cart);
+  html += '<div class="cart-summary">';
+  html += '<div class="cart-summary-row"><span class="cart-summary-label">共 '+totalCount+' 件商品</span>';
+  html += '<span class="cart-summary-total">'+totalWeight+'g</span></div>';
+  html += '<div class="cart-progress-bar"><div class="cart-progress-fill" style="width:'+Math.min(100, totalWeight/20*100)+'%"></div></div>';
+  if (totalWeight < 20) {
+    html += '<div class="cart-summary-row"><span class="cart-summary-label" style="color:var(--danger);">还需 '+(20-totalWeight)+'g 才能下单</span></div>';
+  } else {
+    html += '<div class="cart-summary-row"><span class="cart-summary-label" style="color:var(--success);">✅ 已满20g，可以下单</span></div>';
+  }
+  html += '</div>';
+  var btnCls = totalWeight >= 20 ? 'enabled' : 'disabled';
+  html += '<button class="cart-submit-btn '+btnCls+'" onclick="submitOrder()"'+(totalWeight<20?' disabled':'')+'>提交订单（'+totalWeight+'g）</button>';
+  document.getElementById('cart-content').innerHTML = html;
+}
+
+function updateCartItemQty(idx, delta) {
+  var cart = getCart();
+  if (!cart[idx]) return;
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) {
+    cart.splice(idx, 1);
+  }
+  saveCart(cart);
+  loadCartPage();
+}
+
+function removeCartItem(idx) {
+  var cart = getCart();
+  cart.splice(idx, 1);
+  saveCart(cart);
+  loadCartPage();
+}
+
+function submitOrder() {
+  var cart = getCart();
+  var weight = getCartWeight(cart);
+  if (weight < 20) { toast('⚠️ 未满20g，无法下单'); return; }
+  var m = getCurrentMember();
+  if (!m) { toast('请先登录'); return; }
+  // 记录订单到数据库
+  if (!db.orders) db.orders = [];
+  var order = {
+    id: Date.now(),
+    memberId: m.id,
+    items: cart.slice(),
+    totalWeight: weight,
+    createdAt: new Date().toISOString(),
+    status: 'pending'
+  };
+  db.orders.push(order);
+  saveDB();
+  // 清空购物车
+  saveCart([]);
+  // 显示成功弹窗
+  closeSpecModal();
+  document.getElementById('order-success-desc').textContent = 
+    '您的'+weight+'g咖啡订单已提交，共'+getCartCount(order.items)+'件商品，请到吧台取咖啡~';
+  document.getElementById('order-success-modal').classList.add('show');
+}
+
+function closeOrderSuccess() {
+  document.getElementById('order-success-modal').classList.remove('show');
+  showPage('member');
 }
 
 // ===== 初始化 =====
