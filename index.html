@@ -912,7 +912,6 @@
       </div>
     </div>
   </div>
-</div>
 
 <!-- ===== 随机转盘页面 ===== -->
 <div id="page-lucky" class="hidden">
@@ -983,6 +982,7 @@
     <a class="tab-item" onclick="showPage('points')"><span class="tab-icon">💰</span><span>积分</span></a>
     <a class="tab-item active"><span class="tab-icon">🛒</span><span>购物车</span></a>
   </div>
+</div>
 </div>
 
 <!-- ===== 订单成功弹窗 ===== -->
@@ -2072,7 +2072,7 @@ function resetAllData() {
 
 // ===== 点单/购物车系统 =====
 var CART_KEY = 'doyou_cart';
-var _specState = { beanIdx: -1, type: '', subOption: '', blendMethod: '', blendTemp: '', qty: 1 };
+var _specState = { beanIdx: -1, type: '', subOption: '', blendMethod: '', blendTemp: '', qty: 1, cartEditIdx: -1 };
 
 function getCart() {
   try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch(e) { return []; }
@@ -2140,7 +2140,7 @@ function openSpecModal(beanIdx) {
   var beans = db.shopBeans || [];
   var b = beans[beanIdx];
   if (!b) return;
-  _specState = { beanIdx: beanIdx, type: '', subOption: '', qty: 1 };
+  _specState = { beanIdx: beanIdx, type: '', subOption: '', blendMethod: '', blendTemp: '', qty: 1, cartEditIdx: -1 };
   renderSpecModal(b);
   document.getElementById('spec-modal').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -2165,12 +2165,26 @@ function renderSpecModal(b) {
     { key:'pourover', icon:'☕', name:'手冲', weight:15, unit:'15g' },
     { key:'blend', icon:'🥤', name:'拼豆', weight:5, unit:'5g' }
   ];
+  var roast = b.roast || '';
+  var isLight = roast.indexOf('浅') >= 0;
+  var isDark = roast.indexOf('深') >= 0;
   types.forEach(function(t) {
+    var disabled = false;
+    var reason = '';
+    if (isLight && (t.key === 'ear' || t.key === 'blend')) { disabled = true; reason = '浅烘豆仅支持手冲'; }
+    if (isDark && t.key === 'pourover') { disabled = true; reason = '深烘豆不支持手冲'; }
     var cls = _specState.type === t.key ? ' active' : '';
-    html += '<div class="spec-type-item'+cls+'" onclick="selectSpecType(\''+t.key+'\')">';
-    html += '<div class="spec-type-icon">'+t.icon+'</div>';
-    html += '<div class="spec-type-name">'+t.name+'</div>';
-    html += '<div class="spec-type-weight">'+t.unit+'</div></div>';
+    if (disabled) {
+      html += '<div class="spec-type-item disabled" style="opacity:0.4;cursor:not-allowed;" title="'+reason+'">';
+      html += '<div class="spec-type-icon">'+t.icon+'</div>';
+      html += '<div class="spec-type-name">'+t.name+'</div>';
+      html += '<div class="spec-type-weight">'+reason+'</div></div>';
+    } else {
+      html += '<div class="spec-type-item'+cls+'" onclick="selectSpecType(\''+t.key+'\')">';
+      html += '<div class="spec-type-icon">'+t.icon+'</div>';
+      html += '<div class="spec-type-name">'+t.name+'</div>';
+      html += '<div class="spec-type-weight">'+t.unit+'</div></div>';
+    }
   });
   html += '</div>';
   // 子选项
@@ -2209,7 +2223,8 @@ function renderSpecModal(b) {
   html += '<div class="spec-qty-btn" onclick="adjustQty(1)">+</div>';
   html += '</div></div>';
   // 加入购物车按钮
-  html += '<button class="spec-add-btn" onclick="addToCart()">加入购物车</button>';
+  var btnText = _specState.cartEditIdx >= 0 ? '✅ 确认修改' : '加入购物车';
+  html += '<button class="spec-add-btn" onclick="addToCart()">'+btnText+'</button>';
   document.getElementById('spec-modal-content').innerHTML = html;
 }
 
@@ -2284,10 +2299,14 @@ function addToCart() {
     qty: _specState.qty
   };
   var cart = getCart();
-  cart.push(item);
+  if (_specState.cartEditIdx >= 0 && cart[_specState.cartEditIdx]) {
+    cart[_specState.cartEditIdx] = item;
+  } else {
+    cart.push(item);
+  }
   saveCart(cart);
   closeSpecModal();
-  toast('✅ 已加入购物车');
+  toast(_specState.cartEditIdx >= 0 ? '✅ 已修改' : '✅ 已加入购物车');
 }
 
 function loadCartPage() {
@@ -2312,6 +2331,7 @@ function loadCartPage() {
     html += '<div class="cart-item-desc">'+desc+'</div></div>';
     html += '<div class="cart-item-right">';
     html += '<div class="cart-item-weight">'+(item.weight * item.qty)+'g</div>';
+    html += '<div style="font-size:11px;color:var(--primary);cursor:pointer;margin-bottom:3px;" onclick="editCartItem('+i+')">✏️ 编辑</div>';
     html += '<div class="cart-item-qty-btn" onclick="updateCartItemQty('+i+',-1)">−</div>';
     html += '<div class="cart-item-qty-val">'+item.qty+'</div>';
     html += '<div class="cart-item-qty-btn" onclick="updateCartItemQty('+i+',1)">+</div>';
@@ -2369,6 +2389,27 @@ function removeCartItem(idx) {
   cart.splice(idx, 1);
   saveCart(cart);
   loadCartPage();
+}
+
+function editCartItem(idx) {
+  var cart = getCart();
+  var item = cart[idx];
+  if (!item) return;
+  var beans = db.shopBeans || [];
+  var b = beans[item.beanIdx];
+  if (!b) return;
+  _specState = {
+    beanIdx: item.beanIdx,
+    type: item.type,
+    subOption: item.subOption || '',
+    blendMethod: item.blendMethod || '',
+    blendTemp: item.blendTemp || '',
+    qty: item.qty,
+    cartEditIdx: idx
+  };
+  renderSpecModal(b);
+  document.getElementById('spec-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
 }
 
 function submitOrder() {
@@ -2441,38 +2482,65 @@ function closeOrderSuccess() {
 var _wheelAngle = 0;
 var _wheelSpinning = false;
 var _wheelResult = -1;
-var _wheelColors = ['#A0724A','#C49A6C','#FFB5C2','#7BC67E','#F57C00','#1976D2','#E91E63','#9C27B0'];
+var _wheelCombos = [];
+var _wheelColors = ['#A0724A','#C49A6C','#FFB5C2','#7BC67E','#F57C00','#1976D2','#E91E63','#9C27B0','#6D4C41','#00897B'];
+
+function getWheelCombos() {
+  var beans = db.shopBeans || [];
+  var combos = [];
+  beans.forEach(function(b, i) {
+    var roast = b.roast || '';
+    var isLight = roast.indexOf('浅') >= 0;
+    var isDark = roast.indexOf('深') >= 0;
+    if (isLight) {
+      // 浅烘豆：只能做手冲
+      combos.push({ beanIdx: i, beanName: b.name, method: 'pourover', methodLabel: '手冲', roast: roast });
+    } else if (isDark) {
+      // 深烘豆：不能做手冲，只能美式/拿铁
+      combos.push({ beanIdx: i, beanName: b.name, method: 'blend-americano', methodLabel: '美式', roast: roast });
+      combos.push({ beanIdx: i, beanName: b.name, method: 'blend-latte', methodLabel: '拿铁', roast: roast });
+    } else {
+      // 中度烘焙或其他：手冲/美式/拿铁
+      combos.push({ beanIdx: i, beanName: b.name, method: 'pourover', methodLabel: '手冲', roast: roast });
+      combos.push({ beanIdx: i, beanName: b.name, method: 'blend-americano', methodLabel: '美式', roast: roast });
+      combos.push({ beanIdx: i, beanName: b.name, method: 'blend-latte', methodLabel: '拿铁', roast: roast });
+    }
+  });
+  return combos;
+}
+
+var _methodEmoji = { 'pourover': '☕', 'blend-americano': '🇺🇸', 'blend-latte': '🥛' };
 
 function initWheel() {
   var canvas = document.getElementById('wheel-canvas');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
-  var beans = db.shopBeans || [];
-  drawWheel(ctx, canvas.width, beans, _wheelAngle);
+  _wheelCombos = getWheelCombos();
+  drawWheel(ctx, canvas.width, _wheelCombos, _wheelAngle);
 }
 
-function drawWheel(ctx, size, beans, angle) {
+function drawWheel(ctx, size, combos, angle) {
   var cx = size/2, cy = size/2, r = size/2 - 10;
   ctx.clearRect(0, 0, size, size);
-  if (beans.length === 0) {
+  if (combos.length === 0) {
     ctx.fillStyle = '#ddd';
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#999'; ctx.font = '24px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('暂无豆子', cx, cy);
+    ctx.fillText('暂无可制作饮品', cx, cy);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
     return;
   }
-  var sliceAngle = Math.PI * 2 / beans.length;
-  for (var i = 0; i < beans.length; i++) {
+  var sliceAngle = Math.PI * 2 / combos.length;
+  for (var i = 0; i < combos.length; i++) {
     var startA = angle + i * sliceAngle;
     var endA = startA + sliceAngle;
-    // 扇形
     ctx.fillStyle = _wheelColors[i % _wheelColors.length];
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, startA, endA);
     ctx.closePath();
     ctx.fill();
-    // 边框
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -2481,15 +2549,18 @@ function drawWheel(ctx, size, beans, angle) {
     ctx.translate(cx, cy);
     ctx.rotate(startA + sliceAngle/2);
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px sans-serif';
+    var c = combos[i];
+    var methodEmoji = _methodEmoji[c.method] || '☕';
+    var shortName = c.beanName.length > 3 ? c.beanName.substring(0, 3) + '..' : c.beanName;
+    var label = shortName + ' ' + c.methodLabel;
+    ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    var name = beans[i].name;
-    if (name.length > 5) name = name.substring(0, 5) + '..';
-    ctx.fillText(name, r * 0.62, 0);
+    ctx.fillText(methodEmoji, r * 0.4, -10);
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(label, r * 0.62, 10);
     ctx.restore();
   }
-  // 外圈装饰
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 6;
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
@@ -2497,24 +2568,17 @@ function drawWheel(ctx, size, beans, angle) {
 
 function spinWheel() {
   if (_wheelSpinning) return;
-  var beans = db.shopBeans || [];
-  if (beans.length === 0) { toast('暂无在店豆子'); return; }
+  _wheelCombos = getWheelCombos();
+  if (_wheelCombos.length === 0) { toast('暂无可制作饮品，请联系吧台补充豆子'); return; }
   _wheelSpinning = true;
   var canvas = document.getElementById('wheel-canvas');
   var ctx = canvas.getContext('2d');
   var pointer = document.getElementById('wheel-pointer');
   pointer.classList.add('spinning');
   pointer.textContent = '...';
-  // 随机结果
-  var targetIdx = Math.floor(Math.random() * beans.length);
-  var sliceAngle = Math.PI * 2 / beans.length;
-  // 目标角度：让targetIdx的扇区停在顶部（指针位置，即顶部270度/-90度方向）
-  // 指针在顶部，对应角度 -Math.PI/2
-  // 扇区i的中心角度 = angle + i*sliceAngle + sliceAngle/2
-  // 要让targetIdx的中心停在 -Math.PI/2：
-  // targetAngle + targetIdx*sliceAngle + sliceAngle/2 = -Math.PI/2 + n*2PI
+  var targetIdx = Math.floor(Math.random() * _wheelCombos.length);
+  var sliceAngle = Math.PI * 2 / _wheelCombos.length;
   var targetAngle = -Math.PI/2 - targetIdx * sliceAngle - sliceAngle/2;
-  // 加上额外旋转（至少5圈）
   var totalRotation = Math.PI * 2 * (5 + Math.floor(Math.random() * 3)) + (targetAngle - _wheelAngle % (Math.PI*2));
   var startAngle = _wheelAngle;
   var duration = 4000;
@@ -2522,10 +2586,9 @@ function spinWheel() {
   function animate() {
     var elapsed = Date.now() - startTime;
     var progress = Math.min(elapsed / duration, 1);
-    // easeOutCubic
     var ease = 1 - Math.pow(1 - progress, 3);
     _wheelAngle = startAngle + totalRotation * ease;
-    drawWheel(ctx, canvas.width, beans, _wheelAngle);
+    drawWheel(ctx, canvas.width, _wheelCombos, _wheelAngle);
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
@@ -2533,26 +2596,35 @@ function spinWheel() {
       pointer.classList.remove('spinning');
       pointer.textContent = 'GO';
       _wheelResult = targetIdx;
-      // 显示命运弹窗
       setTimeout(function() { showFateModal(targetIdx); }, 500);
     }
   }
   animate();
 }
 
-function showFateModal(beanIdx) {
-  var beans = db.shopBeans || [];
-  var b = beans[beanIdx];
-  if (!b) return;
+function showFateModal(comboIdx) {
+  var combo = _wheelCombos[comboIdx];
+  if (!combo) return;
   var emojis = ['☕','🫘','🍵','✨','🎯','💫','🌟','🎪'];
   document.getElementById('fate-emoji').textContent = emojis[Math.floor(Math.random()*emojis.length)];
-  document.getElementById('fate-bean-name').textContent = b.name;
+  document.getElementById('fate-bean-name').textContent = combo.beanName + ' · ' + combo.methodLabel;
   document.getElementById('fate-extra-btns').classList.add('hidden');
   document.getElementById('fate-modal').classList.add('show');
-  // 绑定按钮
   document.getElementById('fate-accept').onclick = function() {
     closeFateModal();
-    openSpecModal(beanIdx);
+    var beans = db.shopBeans || [];
+    var b = beans[combo.beanIdx];
+    if (!b) return;
+    if (combo.method === 'pourover') {
+      _specState = { beanIdx: combo.beanIdx, type: 'pourover', subOption: '', blendMethod: '', blendTemp: '', qty: 1, cartEditIdx: -1 };
+    } else if (combo.method === 'blend-americano') {
+      _specState = { beanIdx: combo.beanIdx, type: 'blend', subOption: '', blendMethod: 'americano', blendTemp: '', qty: 1, cartEditIdx: -1 };
+    } else if (combo.method === 'blend-latte') {
+      _specState = { beanIdx: combo.beanIdx, type: 'blend', subOption: '', blendMethod: 'latte', blendTemp: '', qty: 1, cartEditIdx: -1 };
+    }
+    renderSpecModal(b);
+    document.getElementById('spec-modal').classList.add('show');
+    document.body.style.overflow = 'hidden';
   };
   document.getElementById('fate-reject').onclick = function() {
     document.getElementById('fate-extra-btns').classList.remove('hidden');
