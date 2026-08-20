@@ -2511,11 +2511,13 @@ function getWheelCombos() {
 var _methodEmoji = { 'pourover': '☕', 'blend-americano': '🇺🇸', 'blend-latte': '🥛' };
 
 function initWheel() {
-  var canvas = document.getElementById('wheel-canvas');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  _wheelCombos = getWheelCombos();
-  drawWheel(ctx, canvas.width, _wheelCombos, _wheelAngle);
+  setTimeout(function() {
+    var canvas = document.getElementById('wheel-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    _wheelCombos = getWheelCombos();
+    drawWheel(ctx, canvas.width, _wheelCombos, _wheelAngle);
+  }, 100);
 }
 
 function drawWheel(ctx, size, combos, angle) {
