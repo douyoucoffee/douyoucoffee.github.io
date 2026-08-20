@@ -170,7 +170,7 @@
       <div class="points-row">
         <div class="points-row-item"><div class="points-row-val positive" id="idx-monthly">+0</div><div class="points-row-label">本月获得</div></div>
         <div class="points-row-item"><div class="points-row-val" id="idx-shared">0</div><div class="points-row-label">已分享</div></div>
-        <div class="points-row-item"><div class="points-row-val negative" id="idx-used">-0</div><div class="points-row-label">本月已用</div></div>
+        <div class="points-row-item"><div class="points-row-val" id="idx-total" style="color:var(--primary);">0</div><div class="points-row-label">累计积分</div></div>
       </div>
     </div>
 
@@ -266,40 +266,43 @@
         <div class="stat-item"><div class="stat-val" id="m-coupons">0</div><div class="stat-label">可用积分券</div></div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">🫘 快捷入口</div>
-      <div class="list-item" onclick="showPage('bean')">
-        <div class="list-icon" style="background:#FFF3E0;">☕</div>
-        <div class="list-content"><div class="list-title">带豆记录</div><div class="list-desc">查看带豆历史和积分获得</div></div>
-        <div class="list-extra">›</div>
-      </div>
-      <div class="list-item" onclick="showPage('points')">
-        <div class="list-icon" style="background:var(--pink-light);"></div>
-        <div class="list-content"><div class="list-title">我的积分</div><div class="list-desc">积分明细 · 积分券</div></div>
-        <div class="list-extra">›</div>
-      </div>
-      <div class="list-item" onclick="showPage('share')">
-        <div class="list-icon" style="background:#E8F5E9;">🎁</div>
-        <div class="list-content"><div class="list-title">分享积分</div><div class="list-desc">邀请好友 · 赠送积分</div></div>
-        <div class="list-extra">›</div>
-      </div>
-      <div class="list-item" id="m-admin-entry" onclick="goFeature('admin')" style="display:none;">
-        <div class="list-icon" style="background:#F3E5F5;">🔧</div>
-        <div class="list-content"><div class="list-title">管理入口</div><div class="list-desc">会员管理 · 豆子管理 · 设置</div></div>
-        <div class="list-extra">›</div>
+    <!-- 本周好豆豆 -->
+    <div class="weekly-banner">
+      <div class="weekly-banner-icon">🏆</div>
+      <div>
+        <div class="weekly-banner-title">本周好豆豆</div>
+        <div class="weekly-banner-sub" id="m-weekly-sub">好评度最高的豆子</div>
       </div>
     </div>
-    <div class="card text-center">
+    <div id="m-weekly-detail-wrap"></div>
+    <!-- 在店豆子 -->
+    <div class="section-title"><span class="section-title-icon">🫘</span>在店豆子<span class="section-subtitle">— 今天喝哪支？</span></div>
+    <div class="bean-grid" id="m-shop-beans-grid"></div>
+    <!-- 功能入口 -->
+    <div class="feature-grid" style="margin-top:16px;">
+      <div class="feature-item" onclick="showPage('bean')">
+        <div class="feature-icon">☕</div>
+        <div class="feature-name">带豆记录</div>
+        <div class="feature-desc">查看历史</div>
+      </div>
+      <div class="feature-item" onclick="showPage('points')">
+        <div class="feature-icon">💰</div>
+        <div class="feature-name">我的积分</div>
+        <div class="feature-desc">积分明细</div>
+      </div>
+      <div class="feature-item" onclick="showPage('share')">
+        <div class="feature-icon">🎁</div>
+        <div class="feature-name">分享积分</div>
+        <div class="feature-desc">送给朋友</div>
+      </div>
+      <div class="feature-item" id="m-admin-entry" onclick="goFeature('admin')" style="display:none;">
+        <div class="feature-icon">🔧</div>
+        <div class="feature-name">管理入口</div>
+        <div class="feature-desc">运营管理</div>
+      </div>
+    </div>
+    <div class="card text-center" style="margin-top:16px;">
       <button class="btn btn-sm btn-outline" onclick="doLogout()" style="border-color:#ddd;color:var(--text-light);">退出登录</button>
-    </div>
-    <div class="card">
-      <div class="card-title">📖 带豆须知</div>
-      <div style="font-size:13px;color:var(--text-light);line-height:1.8;">
-        <p>1. 携带 <strong style="color:var(--primary)">100g+</strong> 精品咖啡豆到店</p>
-        <p>2. 经品控合格后获得对应积分（1g = 1积分豆）</p>
-        <p id="m-notice"></p>
-        <p>4. 积分券可用于堂食（30%上限）和外卖（20%上限）</p>
-      </div>
     </div>
     <div class="tab-bar">
       <a class="tab-item active"><span class="tab-icon"></span><span>主页</span></a>
@@ -593,6 +596,14 @@
         <div style="font-size:13px;color:var(--text-light);margin-bottom:12px;">添加或编辑在店展示的豆子信息，最多展示6支</div>
         <div id="admin-bean-list"></div>
         <button class="btn btn-sm btn-primary mt-12" onclick="addShopBean()" style="width:100%;">+ 添加在店豆子</button>
+        <!-- 照片上传 -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">📸 豆子照片</div>
+          <select class="form-input" id="bean-photo-select" style="font-size:13px;margin-bottom:8px;"></select>
+          <input type="file" id="bean-photo-input" accept="image/*" onchange="previewBeanPhoto(this)" style="font-size:13px;">
+          <div id="bean-photo-preview" style="margin-top:8px;"></div>
+          <button class="btn btn-sm btn-outline mt-8" onclick="saveBeanPhoto()" style="width:100%;display:none;" id="bean-photo-save-btn">💾 保存照片</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">🏆 本周好豆豆</div>
@@ -804,7 +815,7 @@ function loadIndexPage() {
     var coupons = db.pointCoupons.filter(function(c){ return c.ownerId===m.id && !c.used; });
     document.getElementById('idx-monthly').textContent = '+' + monthGain;
     document.getElementById('idx-shared').textContent = coupons.length;
-    document.getElementById('idx-used').textContent = '-' + (monthGain - (m.pointsBalance||0));
+    document.getElementById('idx-total').textContent = (m.pointsBalance||0);
     document.getElementById('index-auth').className = 'hidden';
     document.getElementById('index-points-card').style.display = 'block';
     // 管理入口仅管理员可见
@@ -815,7 +826,7 @@ function loadIndexPage() {
     document.getElementById('idx-points-val').innerHTML = '0<span>豆 ≈ ¥0.00</span>';
     document.getElementById('idx-monthly').textContent = '+0';
     document.getElementById('idx-shared').textContent = '0';
-    document.getElementById('idx-used').textContent = '-0';
+    document.getElementById('idx-total').textContent = '0';
     document.getElementById('index-auth').className = '';
     // 未登录时隐藏管理入口
     var idxAdmin2 = document.getElementById('idx-admin-entry');
@@ -836,9 +847,13 @@ function renderShopBeans() {
     html = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">🫘</div><div>暂无在店豆子</div></div>';
   } else {
     beans.forEach(function(b) {
-      var emoji = b.roast && b.roast.indexOf('深') >= 0 ? '🟤' : '🟠';
       html += '<div class="bean-card">';
-      html += '<div class="bean-card-img">' + emoji + '</div>';
+      if (b.photo) {
+        html += '<div class="bean-card-img" style="background-image:url('+b.photo+');background-size:cover;background-position:center;"></div>';
+      } else {
+        var emoji = b.roast && b.roast.indexOf('深') >= 0 ? '🟤' : '🟠';
+        html += '<div class="bean-card-img">' + emoji + '</div>';
+      }
       html += '<div class="bean-card-name">' + b.name + '</div>';
       html += '<div class="bean-card-origin">' + b.origin + '</div>';
       html += '<div class="bean-card-tags">';
@@ -961,15 +976,68 @@ function loadMemberPage() {
   // 管理入口仅管理员可见
   var adminEntry = document.getElementById('m-admin-entry');
   if (adminEntry) adminEntry.style.display = m.isAdmin ? 'flex' : 'none';
+  // 状态横幅
   if (isExp()) {
     document.getElementById('m-status').textContent = '🎉 实验期 · 免费畅饮中';
     document.getElementById('m-status').className = 'banner banner-pink';
-    document.getElementById('m-notice').innerHTML = '3. 实验期：<strong style="color:#C2185B">所有会员免费畅饮</strong>，积分系统暂未启用';
   } else {
     document.getElementById('m-status').textContent = '✅ 畅饮有效';
     document.getElementById('m-status').className = 'banner banner-green';
-    document.getElementById('m-notice').textContent = '3. 积分有效期90天，可分享给好友';
   }
+  // 渲染本周好豆豆 + 在店豆子（与首页同步）
+  var wb = db.weeklyBean;
+  if (wb) {
+    document.getElementById('m-weekly-sub').textContent = fmtDate(wb.selectedAt) + ' 更新';
+    renderMemberWeeklyBean(wb);
+  } else {
+    document.getElementById('m-weekly-sub').textContent = '暂无本周推荐';
+    document.getElementById('m-weekly-detail-wrap').innerHTML = '';
+  }
+  renderMemberShopBeans();
+}
+function renderMemberShopBeans() {
+  var beans = db.shopBeans || [];
+  var html = '';
+  if (beans.length === 0) {
+    html = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">🫘</div><div>暂无在店豆子</div></div>';
+  } else {
+    beans.forEach(function(b) {
+      html += '<div class="bean-card">';
+      if (b.photo) {
+        html += '<div class="bean-card-img" style="background-image:url('+b.photo+');background-size:cover;background-position:center;"></div>';
+      } else {
+        var emoji = b.roast && b.roast.indexOf('深') >= 0 ? '🟤' : '🟠';
+        html += '<div class="bean-card-img">' + emoji + '</div>';
+      }
+      html += '<div class="bean-card-name">' + b.name + '</div>';
+      html += '<div class="bean-card-origin">' + b.origin + '</div>';
+      html += '<div class="bean-card-tags">';
+      html += '<span class="bean-tag bean-tag-brown">' + b.roast + '</span>';
+      html += '<span class="bean-tag bean-tag-green">' + b.altitude + '</span>';
+      if (b.variety) html += '<span class="bean-tag bean-tag-blue">' + b.variety + '</span>';
+      html += '</div></div>';
+    });
+  }
+  document.getElementById('m-shop-beans-grid').innerHTML = html;
+}
+function renderMemberWeeklyBean(wb) {
+  var html = '<div class="weekly-detail">';
+  html += '<div class="weekly-detail-name">' + wb.name + '</div>';
+  html += '<div class="weekly-detail-origin">' + wb.origin + '</div>';
+  html += '<div class="weekly-info-grid">';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">烘焙度</div><div class="weekly-info-val">' + (wb.roast||'-') + '</div></div>';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">海拔</div><div class="weekly-info-val">' + (wb.altitude||'-') + '</div></div>';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">豆种</div><div class="weekly-info-val">' + (wb.variety||'-') + '</div></div>';
+  html += '<div class="weekly-info-item"><div class="weekly-info-label">烘焙方式</div><div class="weekly-info-val">' + (wb.roastMethod||'-') + '</div></div>';
+  html += '</div>';
+  if (wb.review) {
+    html += '<div class="weekly-review">';
+    html += '<div class="weekly-review-title">👨‍🍳 主理人测评</div>';
+    html += '<div class="weekly-review-text">' + wb.review + '</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('m-weekly-detail-wrap').innerHTML = html;
 }
 
 // ===== 带豆记录 =====
@@ -1203,6 +1271,7 @@ function loadAdminPage() {
     html += '</div>';
   } else { html = '<div class="empty"><div>暂未设置</div></div>'; }
   document.getElementById('admin-weekly-bean').innerHTML = html;
+  populateBeanPhotoSelect();
   // 设置
   document.getElementById('settings-current-mode').textContent = '当前：'+(mode?'🧪 实验期模式':' 正式运营模式');
   document.getElementById('settings-mode-desc').textContent = mode?'实验期：所有会员免费畅饮，积分系统不启动，仅记录带豆数据。':'正式运营：完整带豆→积分→分享裂变流程启动。';
@@ -1242,6 +1311,7 @@ function switchAdminTab(tab) {
       html += '</div>';
     } else { html = '<div class="empty"><div>暂未设置</div></div>'; }
     document.getElementById('admin-weekly-bean').innerHTML = html;
+    populateBeanPhotoSelect();
   }
   if (tab === 'record' || tab === 'members' || tab === 'beans' || tab === 'settings') loadAdminPage();
 }
@@ -1342,6 +1412,58 @@ function removeShopBean(idx) {
     db.shopBeans.splice(idx, 1);
     saveDB(); toast('已删除'); loadAdminPage();
   }
+}
+
+// ===== 豆子照片 =====
+var _pendingBeanPhoto = null;
+function compressImage(file, maxW, quality, cb) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function previewBeanPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  var sel = document.getElementById('bean-photo-select');
+  if (!sel.value) { toast('请先选择要添加照片的豆子'); return; }
+  compressImage(input.files[0], 400, 0.6, function(dataUrl) {
+    _pendingBeanPhoto = dataUrl;
+    document.getElementById('bean-photo-preview').innerHTML = '<img src="'+dataUrl+'" style="max-width:160px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.1);">';
+    document.getElementById('bean-photo-save-btn').style.display = 'block';
+  });
+}
+function saveBeanPhoto() {
+  var idx = parseInt(document.getElementById('bean-photo-select').value);
+  if (isNaN(idx) || !_pendingBeanPhoto) { toast('请先选择豆子并上传照片'); return; }
+  if (!db.shopBeans[idx]) { toast('豆子不存在'); return; }
+  db.shopBeans[idx].photo = _pendingBeanPhoto;
+  saveDB();
+  _pendingBeanPhoto = null;
+  document.getElementById('bean-photo-preview').innerHTML = '';
+  document.getElementById('bean-photo-save-btn').style.display = 'none';
+  document.getElementById('bean-photo-input').value = '';
+  toast('照片已保存！');
+  loadAdminPage();
+}
+function populateBeanPhotoSelect() {
+  var sel = document.getElementById('bean-photo-select');
+  if (!sel) return;
+  var beans = db.shopBeans || [];
+  sel.innerHTML = '<option value="">-- 选择豆子 --</option>';
+  beans.forEach(function(b, i) {
+    var hasPhoto = b.photo ? ' ✅' : '';
+    sel.innerHTML += '<option value="'+i+'">'+b.name+hasPhoto+'</option>';
+  });
 }
 
 function setWeeklyBean() {
