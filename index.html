@@ -1142,11 +1142,20 @@ function loadSharePage() {
   var tabHome2 = document.getElementById('share-tab-home');
   tabHome2.setAttribute('onclick','showPage(\'member\')');
   tabHome2.querySelector('span:last-child').textContent = '主页';
+  // 构建会员ID→昵称映射
+  var memberMap = {};
+  db.members.forEach(function(mem){ memberMap[mem.id] = mem.nickname; });
   var codes = db.shareCodes.filter(function(s){ return s.creatorId === m.id; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
   var html = '';
   if (codes.length > 0) {
     codes.forEach(function(s) {
-      html += '<div class="list-item" style="cursor:default;"><div class="list-content"><div class="list-title" style="font-family:monospace;letter-spacing:1px;">'+s.code+'</div><div class="list-desc">已领取 '+s.claimedBy.length+'/'+s.maxClaims+'人 · 到期 '+fmtDate(s.expiresAt)+'</div></div><div class="list-extra">'+(s.active?'<span class="badge badge-green">有效</span>':'<span class="badge badge-orange">失效</span>')+'</div></div>';
+      var claimers = s.claimedBy.map(function(cid){ return memberMap[cid] || '豆友'; }).join('、');
+      var remain = s.maxClaims - s.claimedBy.length;
+      var statusBadge = s.active ? '<span class="badge badge-green">有效</span>' : '<span class="badge badge-orange">失效</span>';
+      html += '<div class="list-item" style="cursor:default;flex-wrap:wrap;"><div class="list-content" style="width:100%;"><div class="list-title" style="font-size:13px;color:var(--text-light);">📅 '+fmtDate(s.createdAt)+'</div></div>';
+      html += '<div class="list-content" style="margin-top:6px;"><div class="list-title" style="font-family:monospace;letter-spacing:1px;font-size:13px;">'+s.code+'</div>';
+      html += '<div class="list-desc">'+(claimers ? '🎁 领取人：'+claimers : '⏳ 尚未有人领取')+' · 剩余'+remain+'个名额</div></div>';
+      html += '<div class="list-extra">'+statusBadge+'<div style="font-size:11px;color:var(--text-light);text-align:right;margin-top:2px;">到期 '+fmtDate(s.expiresAt)+'</div></div></div>';
     });
   } else { html = '<div class="empty"><div>还没有分享记录</div></div>'; }
   document.getElementById('share-list').innerHTML = html;
