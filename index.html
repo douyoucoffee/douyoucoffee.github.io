@@ -493,6 +493,14 @@
         <div class="stat-item"><div class="stat-val" id="m-coupons">0</div><div class="stat-label">可用积分券</div></div>
       </div>
     </div>
+    <!-- 随机转盘入口 -->
+    <div class="lucky-banner" onclick="showPage('lucky')">
+      <div class="lucky-banner-icon">🎡</div>
+      <div>
+        <div class="lucky-banner-title">今天心情好，我要随机喝！</div>
+        <div class="lucky-banner-sub">转一转，让命运帮你选一杯 ☕</div>
+      </div>
+    </div>
     <!-- 本周好豆豆 -->
     <div class="weekly-banner">
       <div class="weekly-banner-icon">🏆</div>
@@ -911,7 +919,6 @@
         <button class="btn btn-sm" style="background:var(--danger);color:#fff;border:none;" onclick="resetAllData()">🗑️ 重置所有数据</button>
       </div>
     </div>
-  </div>
 
 <!-- ===== 随机转盘页面 ===== -->
 <div id="page-lucky" class="hidden">
@@ -2169,22 +2176,14 @@ function renderSpecModal(b) {
   var isLight = roast.indexOf('浅') >= 0;
   var isDark = roast.indexOf('深') >= 0;
   types.forEach(function(t) {
-    var disabled = false;
-    var reason = '';
-    if (isLight && (t.key === 'ear' || t.key === 'blend')) { disabled = true; reason = '浅烘豆仅支持手冲'; }
-    if (isDark && t.key === 'pourover') { disabled = true; reason = '深烘豆不支持手冲'; }
+    var tag = '';
+    if (isLight && t.key === 'blend') { tag = '（不推荐）'; }
+    if (isDark && t.key === 'pourover') { tag = '（不推荐）'; }
     var cls = _specState.type === t.key ? ' active' : '';
-    if (disabled) {
-      html += '<div class="spec-type-item disabled" style="opacity:0.4;cursor:not-allowed;" title="'+reason+'">';
-      html += '<div class="spec-type-icon">'+t.icon+'</div>';
-      html += '<div class="spec-type-name">'+t.name+'</div>';
-      html += '<div class="spec-type-weight">'+reason+'</div></div>';
-    } else {
-      html += '<div class="spec-type-item'+cls+'" onclick="selectSpecType(\''+t.key+'\')">';
-      html += '<div class="spec-type-icon">'+t.icon+'</div>';
-      html += '<div class="spec-type-name">'+t.name+'</div>';
-      html += '<div class="spec-type-weight">'+t.unit+'</div></div>';
-    }
+    html += '<div class="spec-type-item'+cls+'" onclick="selectSpecType(\''+t.key+'\')">';
+    html += '<div class="spec-type-icon">'+t.icon+'</div>';
+    html += '<div class="spec-type-name">'+t.name+tag+'</div>';
+    html += '<div class="spec-type-weight">'+t.unit+'</div></div>';
   });
   html += '</div>';
   // 子选项
