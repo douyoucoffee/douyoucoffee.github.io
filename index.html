@@ -1642,6 +1642,8 @@ function doAdminLogin() {
 function loadAdminPage() {
   var m = getCurrentMember();
   if (!m || !m.isAdmin) { showPage('admin-login'); return; }
+  // 初始化订单提醒
+  if (!_orderNotifyEnabled) initOrderNotify();
   var mode = isExp();
   document.getElementById('admin-mode').innerHTML = '当前模式：<span class="mode-badge '+(mode?'mode-exp':'mode-op')+'">'+(mode?' 实验期':'🚀 正式运营')+'</span>';
   var members = db.members;
@@ -1786,18 +1788,105 @@ function loadAdminOrders() {
         if (it.subOptionName) desc += '(' + it.subOptionName + ')';
         return it.beanName + ' ' + desc + ' x' + it.qty + '(' + (it.weight * it.qty) + 'g)';
       }).join('；');
-      html += '<div style="padding:8px 0;border-bottom:1px dashed var(--border);">';
+      // 状态显示
+      var statusText = o.status === 'pending' ? '待处理' : (o.status === 'done' ? '已出品' : (o.statusNote || '其它'));
+      var statusColor = o.status === 'pending' ? 'var(--primary)' : (o.status === 'done' ? 'var(--success)' : 'var(--text-light)');
+      html += '<div style="padding:10px 0;border-bottom:1px dashed var(--border);">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
       html += '<span style="font-size:13px;font-weight:500;">' + memberName + ' <span style="color:var(--text-light);font-size:11px;">#' + o.memberId + '</span></span>';
       html += '<span style="font-size:12px;color:var(--text-light);">' + fmtDT(o.createdAt).split(' ')[1] + '</span>';
       html += '</div>';
       html += '<div style="font-size:12px;color:var(--text);margin-top:4px;">' + itemsDesc + '</div>';
-      html += '<div style="font-size:12px;color:var(--primary);font-weight:600;margin-top:2px;">共 ' + o.totalWeight + 'g · <span style="color:' + (o.status==='pending'?'var(--primary)':'var(--success)') + ';">' + (o.status==='pending'?'待处理':'已完成') + '</span></div>';
-      html += '</div>';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">';
+      html += '<span style="font-size:12px;color:' + statusColor + ';font-weight:600;">' + statusText + '</span>';
+      html += '<div style="display:flex;gap:6px;">';
+      if (o.status !== 'done') html += '<button class="btn-sm btn-primary" onclick="updateOrderStatus(' + o.id + ',\'done\')">已出品</button>';
+      if (o.status !== 'pending') html += '<button class="btn-sm btn-outline" onclick="updateOrderStatus(' + o.id + ',\'pending\')">待处理</button>';
+      html += '<button class="btn-sm btn-outline" onclick="setOrderOtherStatus(' + o.id + ')">其它</button>';
+      html += '</div></div></div>';
     });
     html += '</div>';
   });
   container.innerHTML = html;
+}
+
+function updateOrderStatus(orderId, status, note) {
+  var orders = db.orders || [];
+  var order = orders.find(function(o){ return o.id === orderId; });
+  if (!order) { toast('订单不存在'); return; }
+  order.status = status;
+  if (note) order.statusNote = note;
+  else delete order.statusNote;
+  saveDB();
+  toast('状态已更新');
+  loadAdminOrders();
+  // 更新新订单计数（清除提醒）
+  checkNewOrders(true);
+}
+
+function setOrderOtherStatus(orderId) {
+  var note = prompt('请输入状态备注：');
+  if (note === null) return;
+  if (!note.trim()) { toast('请输入备注'); return; }
+  updateOrderStatus(orderId, 'other', note.trim());
+}
+
+// 新订单提醒
+var _lastOrderCount = 0;
+var _orderNotifyEnabled = false;
+
+function initOrderNotify() {
+  // 请求通知权限
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  _lastOrderCount = (db.orders || []).length;
+  _orderNotifyEnabled = true;
+  // 每30秒检查新订单
+  setInterval(checkNewOrders, 30000);
+}
+
+function checkNewOrders(silent) {
+  if (!_orderNotifyEnabled) return;
+  var orders = db.orders || [];
+  var currentCount = orders.length;
+  if (currentCount > _lastOrderCount && !silent) {
+    var newCount = currentCount - _lastOrderCount;
+    var latestOrder = orders[orders.length - 1];
+    // 浏览器通知
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('豆友咖啡 - 新订单', {
+        body: latestOrder.memberName + ' 下了 ' + latestOrder.totalWeight + 'g 的订单',
+        icon: 'logo.png',
+        tag: 'new-order'
+      });
+    }
+    // 页面内提醒
+    toast('🔔 新订单：' + latestOrder.memberName + ' ' + latestOrder.totalWeight + 'g');
+    // 声音提醒
+    playOrderSound();
+  }
+  _lastOrderCount = currentCount;
+  // 更新标题显示待处理数量
+  var pendingCount = orders.filter(function(o){ return o.status === 'pending'; }).length;
+  var adminOrderTab = document.querySelector('.admin-nav-item[data-tab="orders"]');
+  if (adminOrderTab) {
+    adminOrderTab.textContent = '订单' + (pendingCount > 0 ? ' (' + pendingCount + ')' : '');
+  }
+}
+
+function playOrderSound() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    gain.gain.value = 0.3;
+    osc.start();
+    setTimeout(function(){ osc.stop(); ctx.close(); }, 200);
+  } catch(e) {}
 }
 
 function exportOrdersCSV() {
@@ -1813,7 +1902,7 @@ function exportOrdersCSV() {
       if (it.subOptionName) desc += '(' + it.subOptionName + ')';
       return it.beanName + ' ' + desc + ' x' + it.qty + '(' + (it.weight * it.qty) + 'g)';
     }).join('; ');
-    var statusText = o.status === 'pending' ? '待处理' : '已完成';
+    var statusText = o.status === 'pending' ? '待处理' : (o.status === 'done' ? '已出品' : (o.statusNote || '其它'));
     csv += '"' + o.id + '","' + o.memberId + '","' + memberName + '","' + itemsDesc + '",' + o.totalWeight + ',"' + fmtDT(o.createdAt) + '","' + statusText + '"\n';
   });
   var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2137,31 +2226,15 @@ function updateCartBar() {
   }
   bar.classList.add('show');
   document.getElementById('cart-bar-count').textContent = count;
-  document.getElementById('cart-bar-weight').textContent = weight + 'g / 20g';
+  document.getElementById('cart-bar-weight').textContent = weight + 'g';
   var btn = document.getElementById('cart-bar-btn');
-  // 拼豆校验
-  var blendOk = true;
-  var blendByMethod = {};
-  cart.forEach(function(item) {
-    if (item.type === 'blend' && item.blendMethod) {
-      if (!blendByMethod[item.blendMethod]) blendByMethod[item.blendMethod] = 0;
-      blendByMethod[item.blendMethod] += item.weight * item.qty;
-    }
-  });
-  for (var method in blendByMethod) {
-    var w = blendByMethod[method];
-    if (w > 0 && w % 20 !== 0) { blendOk = false; break; }
-  }
-  if (weight >= 20 && blendOk) {
-    document.getElementById('cart-bar-hint').textContent = '已满20g，可以下单';
+  var count = getCartCount(cart);
+  if (count > 0) {
+    document.getElementById('cart-bar-hint').textContent = count + '件商品，可以下单';
     btn.classList.remove('disabled');
     btn.textContent = '去下单';
-  } else if (weight >= 20 && !blendOk) {
-    document.getElementById('cart-bar-hint').textContent = '拼豆需凑够20g整数倍';
-    btn.classList.add('disabled');
-    btn.textContent = '去下单';
   } else {
-    document.getElementById('cart-bar-hint').textContent = '还差' + (20 - weight) + 'g可下单';
+    document.getElementById('cart-bar-hint').textContent = '购物车是空的';
     btn.classList.add('disabled');
     btn.textContent = '去下单';
   }
@@ -2193,8 +2266,8 @@ function renderSpecModal(b) {
   html += '<div class="spec-type-grid">';
   var types = [
     { key:'ear', icon:'🍵', name:'挂耳', weight:15, unit:'1包(15g)' },
-    { key:'pourover', icon:'☕', name:'手冲', weight:15, unit:'15g' },
-    { key:'blend', icon:'🥤', name:'拼豆', weight:5, unit:'5g' }
+    { key:'pourover', icon:'☕', name:'手冲', weight:15, unit:'1杯(15g)' },
+    { key:'blend', icon:'🥤', name:'拼豆', weight:20, unit:'1杯(20g)' }
   ];
   var roast = b.roast || '';
   var isLight = roast.indexOf('浅') >= 0;
@@ -2438,23 +2511,8 @@ function editCartItem(idx) {
 function submitOrder() {
   var cart = getCart();
   var weight = getCartWeight(cart);
-  if (weight < 20) { toast('⚠️ 未满20g，无法下单'); return; }
-  // 拼豆校验：每种做法总重量必须是20g的整数倍
-  var blendByMethod = {};
-  cart.forEach(function(item) {
-    if (item.type === 'blend' && item.blendMethod) {
-      if (!blendByMethod[item.blendMethod]) blendByMethod[item.blendMethod] = 0;
-      blendByMethod[item.blendMethod] += item.weight * item.qty;
-    }
-  });
-  var methodNameMap = { americano: '美式', latte: '拿铁' };
-  for (var method in blendByMethod) {
-    var w = blendByMethod[method];
-    if (w > 0 && w % 20 !== 0) {
-      toast('⚠️ ' + methodNameMap[method] + '拼豆需凑够20g的整数倍（当前' + w + 'g，差' + (20 - w % 20) + 'g）');
-      return;
-    }
-  }
+  var count = getCartCount(cart);
+  if (count === 0) { toast('⚠️ 购物车是空的'); return; }
   var m = getCurrentMember();
   if (!m) { toast('请先登录'); return; }
   // 库存扣减
