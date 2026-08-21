@@ -1789,9 +1789,10 @@ function loadAdminOrders() {
         return it.beanName + ' ' + desc + ' x' + it.qty + '(' + (it.weight * it.qty) + 'g)';
       }).join('；');
       // 状态显示
-      var statusText = o.status === 'pending' ? '待处理' : (o.status === 'done' ? '已出品' : (o.statusNote || '其它'));
-      var statusColor = o.status === 'pending' ? 'var(--primary)' : (o.status === 'done' ? 'var(--success)' : 'var(--text-light)');
-      html += '<div style="padding:10px 0;border-bottom:1px dashed var(--border);">';
+      var statusText = o.status === 'pending' ? '待处理' : (o.status === 'done' ? '已出品' : (o.status === 'cancelled' ? '已取消' : (o.statusNote || '其它')));
+      var statusColor = o.status === 'pending' ? 'var(--primary)' : (o.status === 'done' ? 'var(--success)' : (o.status === 'cancelled' ? 'var(--text-light)' : 'var(--text-light)'));
+      var textDecoration = o.status === 'cancelled' ? 'text-decoration:line-through;opacity:0.6;' : '';
+      html += '<div style="padding:10px 0;border-bottom:1px dashed var(--border);' + textDecoration + '">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
       html += '<span style="font-size:13px;font-weight:500;">' + memberName + ' <span style="color:var(--text-light);font-size:11px;">#' + o.memberId + '</span></span>';
       html += '<span style="font-size:12px;color:var(--text-light);">' + fmtDT(o.createdAt).split(' ')[1] + '</span>';
@@ -1800,8 +1801,9 @@ function loadAdminOrders() {
       html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">';
       html += '<span style="font-size:12px;color:' + statusColor + ';font-weight:600;">' + statusText + '</span>';
       html += '<div style="display:flex;gap:6px;">';
-      if (o.status !== 'done') html += '<button class="btn-sm btn-primary" onclick="updateOrderStatus(' + o.id + ',\'done\')">已出品</button>';
-      if (o.status !== 'pending') html += '<button class="btn-sm btn-outline" onclick="updateOrderStatus(' + o.id + ',\'pending\')">待处理</button>';
+      if (o.status !== 'done' && o.status !== 'cancelled') html += '<button class="btn-sm btn-primary" onclick="updateOrderStatus(' + o.id + ',\'done\')">已出品</button>';
+      if (o.status !== 'pending' && o.status !== 'cancelled') html += '<button class="btn-sm btn-outline" onclick="updateOrderStatus(' + o.id + ',\'pending\')">待处理</button>';
+      if (o.status !== 'cancelled') html += '<button class="btn-sm btn-outline" onclick="cancelOrder(' + o.id + ')" style="color:var(--danger);border-color:var(--danger);">取消</button>';
       html += '<button class="btn-sm btn-outline" onclick="setOrderOtherStatus(' + o.id + ')">其它</button>';
       html += '</div></div></div>';
     });
@@ -1829,6 +1831,28 @@ function setOrderOtherStatus(orderId) {
   if (note === null) return;
   if (!note.trim()) { toast('请输入备注'); return; }
   updateOrderStatus(orderId, 'other', note.trim());
+}
+
+function cancelOrder(orderId) {
+  if (!confirm('确定取消此订单？库存将自动回退。')) return;
+  var orders = db.orders || [];
+  var order = orders.find(function(o){ return o.id === orderId; });
+  if (!order) { toast('订单不存在'); return; }
+  if (order.status === 'cancelled') { toast('订单已是取消状态'); return; }
+  // 回退库存
+  var beans = db.shopBeans || [];
+  (order.items || []).forEach(function(item) {
+    var b = beans[item.beanIdx];
+    if (b && b.stock !== undefined && b.stock !== null) {
+      b.stock += item.weight * item.qty;
+    }
+  });
+  order.status = 'cancelled';
+  delete order.statusNote;
+  saveDB();
+  toast('订单已取消，库存已回退');
+  loadAdminOrders();
+  checkNewOrders(true);
 }
 
 // 新订单提醒
@@ -1902,7 +1926,7 @@ function exportOrdersCSV() {
       if (it.subOptionName) desc += '(' + it.subOptionName + ')';
       return it.beanName + ' ' + desc + ' x' + it.qty + '(' + (it.weight * it.qty) + 'g)';
     }).join('; ');
-    var statusText = o.status === 'pending' ? '待处理' : (o.status === 'done' ? '已出品' : (o.statusNote || '其它'));
+    var statusText = o.status === 'pending' ? '待处理' : (o.status === 'done' ? '已出品' : (o.status === 'cancelled' ? '已取消' : (o.statusNote || '其它')));
     csv += '"' + o.id + '","' + o.memberId + '","' + memberName + '","' + itemsDesc + '",' + o.totalWeight + ',"' + fmtDT(o.createdAt) + '","' + statusText + '"\n';
   });
   var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
