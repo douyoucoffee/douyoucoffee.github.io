@@ -1865,12 +1865,18 @@ function submitRecord() {
     if (c.roastDate) existingBean.roastDate = c.roastDate;
     if (c.shelfDate) existingBean.shelfDate = c.shelfDate;
     if (c.review) existingBean.review = c.review;
+    // 会员贡献的豆子克重自动累加到库存
+    if (existingBean.stock !== undefined && existingBean.stock !== null) {
+      existingBean.stock += grams;
+    } else {
+      existingBean.stock = grams;
+    }
   } else if (c.origin || c.flavor) {
     if (!db.shopBeans) db.shopBeans = [];
     db.shopBeans.push({
       name: bean, origin: c.origin||'', altitude: c.altitude||'',
       roast: c.roast||'', variety: c.variety||'', flavor: c.flavor||'',
-      roastDate: c.roastDate||'', shelfDate: c.shelfDate||'', review: c.review||'', stock: 0
+      roastDate: c.roastDate||'', shelfDate: c.shelfDate||'', review: c.review||'', stock: grams
     });
   }
   saveDB();
