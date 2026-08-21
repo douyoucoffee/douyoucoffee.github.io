@@ -1309,6 +1309,11 @@ function renderShopBeans() {
       }
       html += '<div class="bean-card-name">' + b.name + '</div>';
       html += '<div class="bean-card-origin">' + b.origin + '</div>';
+      if (b.stock !== undefined && b.stock !== null) {
+        var stockColor = b.stock < 30 ? 'var(--danger)' : (b.stock < 50 ? 'var(--primary)' : 'var(--success)');
+        var stockWarn = b.stock < 30 ? ' ⚠️' : '';
+        html += '<div style="font-size:12px;color:' + stockColor + ';font-weight:600;margin-bottom:6px;">库存：' + b.stock + 'g' + stockWarn + '</div>';
+      }
       html += '<div class="bean-card-tags">';
       html += '<span class="bean-tag bean-tag-brown">' + b.roast + '</span>';
       html += '<span class="bean-tag bean-tag-green">' + b.altitude + '</span>';
@@ -1497,6 +1502,11 @@ function renderMemberShopBeans() {
       }
       html += '<div class="bean-card-name">' + b.name + '</div>';
       html += '<div class="bean-card-origin">' + b.origin + '</div>';
+      if (b.stock !== undefined && b.stock !== null) {
+        var stockColor = b.stock < 30 ? 'var(--danger)' : (b.stock < 50 ? 'var(--primary)' : 'var(--success)');
+        var stockWarn = b.stock < 30 ? ' ⚠️' : '';
+        html += '<div style="font-size:12px;color:' + stockColor + ';font-weight:600;margin-bottom:6px;">库存：' + b.stock + 'g' + stockWarn + '</div>';
+      }
       html += '<div class="bean-card-tags">';
       html += '<span class="bean-tag bean-tag-brown">' + b.roast + '</span>';
       html += '<span class="bean-tag bean-tag-green">' + b.altitude + '</span>';
