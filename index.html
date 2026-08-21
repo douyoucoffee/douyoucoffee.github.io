@@ -2333,7 +2333,7 @@ function renderSpecModal(b) {
       html += '<div class="spec-sub-btn'+bIceCls+'" onclick="selectBlendTemp(\'ice\')">🧊 冰的</div>';
       html += '</div></div>';
     }
-    html += '<div style="font-size:11px;color:var(--text-light);margin-top:4px;padding:8px;background:var(--bg);border-radius:8px;">💡 同一做法需凑够20g才能出一杯（每份5g，即4份起）</div>';
+    html += '<div style="font-size:11px;color:var(--text-light);margin-top:4px;padding:8px;background:var(--bg);border-radius:8px;">💡 每杯拼豆使用20g咖啡豆</div>';
   }
   // 数量
   html += '<div class="spec-quantity-row"><div class="spec-section-title" style="margin-bottom:0">数量</div>';
@@ -2398,7 +2398,7 @@ function addToCart() {
   var beans = db.shopBeans || [];
   var b = beans[_specState.beanIdx];
   if (!b) return;
-  var weightMap = { ear: 15, pourover: 15, blend: 5 };
+  var weightMap = { ear: 15, pourover: 15, blend: 20 };
   // 库存检查
   if (b.stock !== undefined && b.stock !== null) {
     var addWeight = weightMap[_specState.type] * _specState.qty;
@@ -2445,11 +2445,11 @@ function loadCartPage() {
     } else if (item.subOptionName) {
       desc += ' · ' + item.subOptionName;
     }
-    html += '<div class="cart-item">';
+    html += '<div class="cart-item" style="cursor:pointer;" onclick="editCartItem('+i+')">';
     html += '<div class="cart-item-icon">☕</div>';
     html += '<div class="cart-item-info"><div class="cart-item-name">'+item.beanName+'</div>';
     html += '<div class="cart-item-desc">'+desc+'</div></div>';
-    html += '<div class="cart-item-right">';
+    html += '<div class="cart-item-right" onclick="event.stopPropagation()">';
     html += '<div class="cart-item-weight">'+(item.weight * item.qty)+'g</div>';
     html += '<div style="font-size:11px;color:var(--primary);cursor:pointer;margin-bottom:3px;" onclick="editCartItem('+i+')">✏️ 编辑</div>';
     html += '<div class="cart-item-qty-btn" onclick="updateCartItemQty('+i+',-1)">−</div>';
@@ -2460,33 +2460,10 @@ function loadCartPage() {
   });
   var totalWeight = getCartWeight(cart);
   var totalCount = getCartCount(cart);
-  // 拼豆分组校验
-  var blendByMethod = {};
-  cart.forEach(function(item) {
-    if (item.type === 'blend' && item.blendMethod) {
-      if (!blendByMethod[item.blendMethod]) blendByMethod[item.blendMethod] = 0;
-      blendByMethod[item.blendMethod] += item.weight * item.qty;
-    }
-  });
-  var blendWarning = '';
-  var methodNameMap = { americano: '美式', latte: '拿铁' };
-  for (var method in blendByMethod) {
-    var w = blendByMethod[method];
-    if (w > 0 && w % 20 !== 0) {
-      blendWarning += '<div class="cart-summary-row"><span class="cart-summary-label" style="color:var(--danger);">⚠️ ' + methodNameMap[method] + '拼豆' + w + 'g，需凑到' + (Math.ceil(w/20)*20) + 'g（差' + (Math.ceil(w/20)*20 - w) + 'g）</span></div>';
-    }
-  }
-  var canSubmit = totalWeight >= 20 && !blendWarning;
+  var canSubmit = totalCount > 0;
   html += '<div class="cart-summary">';
   html += '<div class="cart-summary-row"><span class="cart-summary-label">共 '+totalCount+' 件商品</span>';
   html += '<span class="cart-summary-total">'+totalWeight+'g</span></div>';
-  html += '<div class="cart-progress-bar"><div class="cart-progress-fill" style="width:'+Math.min(100, totalWeight/20*100)+'%"></div></div>';
-  if (totalWeight < 20) {
-    html += '<div class="cart-summary-row"><span class="cart-summary-label" style="color:var(--danger);">还需 '+(20-totalWeight)+'g 才能下单</span></div>';
-  } else {
-    html += '<div class="cart-summary-row"><span class="cart-summary-label" style="color:var(--success);">✅ 总重量已满20g</span></div>';
-  }
-  if (blendWarning) { html += blendWarning; }
   html += '</div>';
   var btnCls = canSubmit ? 'enabled' : 'disabled';
   html += '<button class="cart-submit-btn '+btnCls+'" onclick="submitOrder()"'+(canSubmit?'':' disabled')+'>提交订单（'+totalWeight+'g）</button>';
