@@ -1104,8 +1104,32 @@ function loadFromCloud() {
         });
         db.members = merged;
       }
-      // 其他数据直接覆盖
-      var otherKeys = ['contributions','points','shareCodes','pointCoupons','shopBeans','weeklyBean','orders'];
+      // shopBeans：按名称取并集（防止本地新增的豆子被覆盖）
+      if (cloudDb.shopBeans && Array.isArray(cloudDb.shopBeans)) {
+        var localBeanNames = {};
+        (db.shopBeans || []).forEach(function(b) { localBeanNames[b.name] = true; });
+        cloudDb.shopBeans.forEach(function(b) {
+          if (!localBeanNames[b.name]) db.shopBeans.push(b);
+        });
+      }
+      // contributions：按 id 取并集
+      if (cloudDb.contributions && Array.isArray(cloudDb.contributions)) {
+        var localContribIds = {};
+        (db.contributions || []).forEach(function(c) { localContribIds[c.id] = true; });
+        cloudDb.contributions.forEach(function(c) {
+          if (!localContribIds[c.id]) db.contributions.push(c);
+        });
+      }
+      // orders：按 id 取并集
+      if (cloudDb.orders && Array.isArray(cloudDb.orders)) {
+        var localOrderIds = {};
+        (db.orders || []).forEach(function(o) { localOrderIds[o.id] = true; });
+        cloudDb.orders.forEach(function(o) {
+          if (!localOrderIds[o.id]) db.orders.push(o);
+        });
+      }
+      // 其他数据直接覆盖（points, shareCodes, pointCoupons, weeklyBean）
+      var otherKeys = ['points','shareCodes','pointCoupons','weeklyBean'];
       for (var i = 0; i < otherKeys.length; i++) {
         if (cloudDb[otherKeys[i]] !== undefined) db[otherKeys[i]] = cloudDb[otherKeys[i]];
       }
@@ -1133,13 +1157,58 @@ function loadFromCloud() {
 }
 
 function pushToCloud() {
-  var content = b64Encode(JSON.stringify(db));
-  fetch(GH_API, {
-    method: 'GET',
+  // 先读云端最新数据，再合并本地变更，防止旧数据覆盖新数据
+  fetch(GH_API + '?t=' + Date.now(), {
     headers: { 'Authorization': 'token ' + GH_TOKEN }
   })
-  .then(function(r) { return r.ok ? r.json() : { sha: null }; })
-  .then(function(data) {
+  .then(function(r) {
+    if (!r.ok) throw new Error('cloud read failed');
+    return r.json();
+  })
+  .then(function(cloudFile) {
+    var sha = cloudFile.sha || '';
+    var cloudDb = JSON.parse(b64Decode(cloudFile.content));
+    // 合并：以本地为基准，但补齐云端有而本地没有的数据
+    var merged = JSON.parse(JSON.stringify(db));
+    // 1. members：按手机号取并集
+    if (cloudDb.members && Array.isArray(cloudDb.members)) {
+      var localPhones = {};
+      (merged.members || []).forEach(function(m) { localPhones[m.phone] = true; });
+      cloudDb.members.forEach(function(m) {
+        if (!localPhones[m.phone]) merged.members.push(m);
+      });
+    }
+    // 2. shopBeans：按名称取并集（防止豆子丢失）
+    if (cloudDb.shopBeans && Array.isArray(cloudDb.shopBeans)) {
+      var localBeanNames = {};
+      (merged.shopBeans || []).forEach(function(b) { localBeanNames[b.name] = true; });
+      cloudDb.shopBeans.forEach(function(b) {
+        if (!localBeanNames[b.name]) merged.shopBeans.push(b);
+      });
+    }
+    // 3. contributions：按 id 取并集
+    if (cloudDb.contributions && Array.isArray(cloudDb.contributions)) {
+      var localContribIds = {};
+      (merged.contributions || []).forEach(function(c) { localContribIds[c.id] = true; });
+      cloudDb.contributions.forEach(function(c) {
+        if (!localContribIds[c.id]) merged.contributions.push(c);
+      });
+    }
+    // 4. orders：按 id 取并集
+    if (cloudDb.orders && Array.isArray(cloudDb.orders)) {
+      var localOrderIds = {};
+      (merged.orders || []).forEach(function(o) { localOrderIds[o.id] = true; });
+      cloudDb.orders.forEach(function(o) {
+        if (!localOrderIds[o.id]) merged.orders.push(o);
+      });
+    }
+    // 5. nextId：取最大值
+    if (cloudDb.nextId) {
+      for (var k in cloudDb.nextId) {
+        if (cloudDb.nextId[k] > (merged.nextId[k]||0)) merged.nextId[k] = cloudDb.nextId[k];
+      }
+    }
+    var content = b64Encode(JSON.stringify(merged));
     return fetch(GH_API, {
       method: 'PUT',
       headers: {
@@ -1149,7 +1218,7 @@ function pushToCloud() {
       body: JSON.stringify({
         message: 'sync data ' + new Date().toISOString(),
         content: content,
-        sha: (data && data.sha) ? data.sha : ''
+        sha: sha
       })
     });
   })
